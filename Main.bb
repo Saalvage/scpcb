@@ -151,8 +151,8 @@ Else
 		End If
 	Next
 	
-	GraphicWidth = GfxModeWidths(SelectedGFXMode)
-	GraphicHeight = GfxModeHeights(SelectedGFXMode)
+	GraphicWidth = 765
+	GraphicHeight = 1360
 	
 	;New "fake fullscreen" - ENDSHN Psst, it's called borderless windowed mode --Love Mark,
 	If BorderlessWindowed
@@ -198,6 +198,8 @@ Global CurrFrameLimit# = (Framelimit%-19)/100.0
 
 Global ScreenGamma# = GetINIFloat(OptionFile, "options", "screengamma")
 ;If Fullscreen Then UpdateScreenGamma()
+
+Global FOV# = GetINIFloat(OptionFile, "options", "fov")
 
 Const HIT_MAP% = 1, HIT_PLAYER% = 2, HIT_ITEM% = 3, HIT_APACHE% = 4, HIT_178% = 5, HIT_DEAD% = 6
 SeedRnd MilliSecs()
@@ -592,6 +594,7 @@ Function UpdateConsole()
 							CreateConsoleMsg("- asd")
 							CreateConsoleMsg("- status")
 							CreateConsoleMsg("- camerapick")
+							CreateConsoleMsg("- fov")
 							CreateConsoleMsg("- ending")
 							CreateConsoleMsg("- noclipspeed")
 							CreateConsoleMsg("- noclip")
@@ -725,11 +728,17 @@ Function UpdateConsole()
 							CreateConsoleMsg("Prints the texture name and coordinates of")
 							CreateConsoleMsg("the model the camera is pointing at.")
 							CreateConsoleMsg("******************************")
+						Case "fov"
+							CreateConsoleMsg("HELP - fov")
+							CreateConsoleMsg("******************************")
+							CreateConsoleMsg("Field of view (FOV) is the amount of game view")
+							CreateConsoleMsg("that is on display during a game.")
+							CreateConsoleMsg("******************************")	
+							CreateConsoleMsg("******************************")
 						Case "status"
 							CreateConsoleMsg("HELP - status")
 							CreateConsoleMsg("******************************")
 							CreateConsoleMsg("Prints player, camera, and room information.")
-							CreateConsoleMsg("******************************")
 						Case "weed","scp-420-j","420"
 							CreateConsoleMsg("HELP - 420")
 							CreateConsoleMsg("******************************")
@@ -808,6 +817,11 @@ Function UpdateConsole()
 						CreateConsoleMsg("******************************")							
 					EndIf
 					;[End Block]
+				Case "fov"
+					;[Block]
+					StrTemp$ = Lower(Right(ConsoleInput, Len(ConsoleInput) - Instr(ConsoleInput, " ")))
+					
+					FOV# = Float(StrTemp)
 				Case "hidedistance"
 					;[Block]
 					HideDistance = Float(Right(ConsoleInput, Len(ConsoleInput) - Instr(ConsoleInput, " ")))
@@ -4373,7 +4387,7 @@ Function MouseLook()
 	CameraShake = Max(CameraShake - (FPSfactor / 10), 0)
 	
 	;CameraZoomTemp = CurveValue(CurrCameraZoom,CameraZoomTemp, 5.0)
-	CameraZoom(Camera, Min(1.0+(CurrCameraZoom/400.0),1.1))
+	CameraZoom(Camera, Min(1.0+(CurrCameraZoom/400.0),1.1) / Tan((2*ATan(Tan((FOV#)/2)*RealGraphicWidth/RealGraphicHeight))/2.0))
 	CurrCameraZoom = Max(CurrCameraZoom - FPSfactor, 0)
 	
 	If KillTimer >= 0 And FallTimer >=0 Then
@@ -7885,7 +7899,11 @@ Function LoadEntities()
 	FogTexture = LoadTexture_Strict("GFX\fog.jpg", 1)
 	
 	Fog = CreateSprite(ark_blur_cam)
-	ScaleSprite(Fog, Max(GraphicWidth / 1240.0, 1.0), Max(GraphicHeight / 960.0 * 0.8, 0.8))
+	Local Test# = Float(GraphicWidth) / Float(GraphicHeight)
+	Local ScaleX# = Max(1.0, Test)
+	Local ScaleY# = Max(1.0, 1.0 / Test)
+	DebugLog(Test)
+	ScaleSprite(Fog, ScaleX, ScaleY)
 	EntityTexture(Fog, FogTexture)
 	EntityBlend (Fog, 2)
 	EntityOrder Fog, -1000
@@ -7893,7 +7911,7 @@ Function LoadEntities()
 	
 	GasMaskTexture = LoadTexture_Strict("GFX\GasmaskOverlay.jpg", 1)
 	GasMaskOverlay = CreateSprite(ark_blur_cam)
-	ScaleSprite(GasMaskOverlay, Max(GraphicWidth / 1024.0, 1.0), Max(GraphicHeight / 1024.0 * 0.8, 0.8))
+	ScaleSprite(GasMaskOverlay, ScaleX, ScaleY)
 	EntityTexture(GasMaskOverlay, GasMaskTexture)
 	EntityBlend (GasMaskOverlay, 2)
 	EntityFX(GasMaskOverlay, 1)
@@ -7903,7 +7921,7 @@ Function LoadEntities()
 	
 	InfectTexture = LoadTexture_Strict("GFX\InfectOverlay.jpg", 1)
 	InfectOverlay = CreateSprite(ark_blur_cam)
-	ScaleSprite(InfectOverlay, Max(GraphicWidth / 1024.0, 1.0), Max(GraphicHeight / 1024.0 * 0.8, 0.8))
+	ScaleSprite(InfectOverlay, ScaleX, ScaleY)
 	EntityTexture(InfectOverlay, InfectTexture)
 	EntityBlend (InfectOverlay, 3)
 	EntityFX(InfectOverlay, 1)
@@ -7914,7 +7932,7 @@ Function LoadEntities()
 	
 	NVTexture = LoadTexture_Strict("GFX\NightVisionOverlay.jpg", 1)
 	NVOverlay = CreateSprite(ark_blur_cam)
-	ScaleSprite(NVOverlay, Max(GraphicWidth / 1024.0, 1.0), Max(GraphicHeight / 1024.0 * 0.8, 0.8))
+	ScaleSprite(NVOverlay, ScaleX, ScaleY)
 	EntityTexture(NVOverlay, NVTexture)
 	EntityBlend (NVOverlay, 2)
 	EntityFX(NVOverlay, 1)
@@ -7922,7 +7940,7 @@ Function LoadEntities()
 	MoveEntity(NVOverlay, 0, 0, 1.0)
 	HideEntity(NVOverlay)
 	NVBlink = CreateSprite(ark_blur_cam)
-	ScaleSprite(NVBlink, Max(GraphicWidth / 1024.0, 1.0), Max(GraphicHeight / 1024.0 * 0.8, 0.8))
+	ScaleSprite(NVBlink, ScaleX, ScaleY)
 	EntityColor(NVBlink,0,0,0)
 	EntityFX(NVBlink, 1)
 	EntityOrder NVBlink, -1005
@@ -7939,7 +7957,7 @@ Function LoadEntities()
 	SetBuffer BackBuffer()
 	
 	Dark = CreateSprite(Camera)
-	ScaleSprite(Dark, Max(GraphicWidth / 1240.0, 1.0), Max(GraphicHeight / 960.0 * 0.8, 0.8))
+	ScaleSprite(Dark, ScaleX, ScaleY)
 	EntityTexture(Dark, DarkTexture)
 	EntityBlend (Dark, 1)
 	EntityOrder Dark, -1002
@@ -7956,7 +7974,7 @@ Function LoadEntities()
 	TeslaTexture = LoadTexture_Strict("GFX\map\tesla.jpg", 1+2)
 	
 	Light = CreateSprite(Camera)
-	ScaleSprite(Light, Max(GraphicWidth / 1240.0, 1.0), Max(GraphicHeight / 960.0 * 0.8, 0.8))
+	ScaleSprite(Light, ScaleX, ScaleY)
 	EntityTexture(Light, LightTexture)
 	EntityBlend (Light, 1)
 	EntityOrder Light, -1002
@@ -11153,6 +11171,7 @@ Function SaveOptionsINI()
 	PutINIValue(OptionFile, "options", "particle amount", ParticleAmount)
 	PutINIValue(OptionFile, "options", "enable vram", EnableVRam)
 	PutINIValue(OptionFile, "options", "mouse smoothing", MouseSmooth)
+	PutINIValue(OptionFile, "options", "fov", Int(FOV))
 	
 	PutINIValue(OptionFile, "audio", "music volume", MusicVolume)
 	PutINIValue(OptionFile, "audio", "sound volume", PrevSFXVolume)
