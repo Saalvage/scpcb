@@ -89,6 +89,7 @@ Function SaveGame(file$)
 	WriteByte f, WearingGasMask
 	WriteByte f, WearingVest
 	WriteByte f, WearingHazmat
+	WriteByte f, WearingPumpkin
 	
 	WriteByte f, WearingNightVision
 	WriteByte f, Wearing1499
@@ -575,6 +576,8 @@ Function LoadGame(file$)
 	WearingGasMask = ReadByte(f)
 	WearingVest = ReadByte(f)	
 	WearingHazmat = ReadByte(f)
+	WearingPumpkin = ReadByte(f)
+	If WearingPumpkin Then NoTarget = True
 	
 	WearingNightVision = ReadByte(f)
 	Wearing1499 = ReadByte(f)
@@ -1311,6 +1314,7 @@ Function LoadGameQuick(file$)
 	DeafPlayer% = False
 	DeafTimer# = 0.0
 	UnableToMove% = False
+	LostHands = False
 	Msg = ""
 	SelectedEnding = ""
 	
@@ -1427,6 +1431,8 @@ Function LoadGameQuick(file$)
 	WearingGasMask = ReadByte(f)
 	WearingVest = ReadByte(f)	
 	WearingHazmat = ReadByte(f)
+	WearingPumpkin = ReadByte(f)
+	If WearingPumpkin Then NoTarget = True
 	
 	WearingNightVision = ReadByte(f)
 	Wearing1499 = ReadByte(f)
