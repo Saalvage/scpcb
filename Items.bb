@@ -394,6 +394,8 @@ Function RemoveItem(i.Items, inGame%=True)
 				Wearing1499 = False
 			Case "scp427"
 				I_427\Using = False
+			Case "pumpkin"
+				WearingPumpkin = False
 		End Select
 	EndIf
 	If i\itemtemplate\img <> 0
@@ -514,6 +516,8 @@ Function UpdateItems()
 		EndIf
 		deletedItem = False
 	Next
+
+	If LostHands Then ClosestItem = Null
 	
 	If ClosestItem <> Null Then
 		;DrawHandIcon = True
@@ -644,6 +648,43 @@ Function PickItem(item.Items)
 							;TakeOffStuff(2)
 							SelectedItem = item
 						EndIf
+					Case "scp330"
+						If item\state < 2 Then
+							item\state = item\state + 1
+							Local candy%, candyMask%
+							Repeat
+								candy = Rand(0, 2)
+								candyMask = 1 Shl candy
+							Until Not (item\state2 And candyMask)
+							item\state2 = item\state2 Or candyMask
+							Select candy
+								Case 0
+									item = CreateItem("eyecandy", 0, 0, 0)
+								Case 1
+									item = CreateItem("candylolly", 0, 0, 0)
+								Case 2
+									item = CreateItem("candybar", 0, 0, 0)
+							End Select
+						Else
+							Local pvt% = CreatePivot()
+							EntityParent(pvt, Camera, False)
+							EntityParent(pvt, 0, True)
+							MoveEntity(pvt, 0.1, -0.1, 0.2)
+							item = CreateItem("hand", EntityX(pvt), EntityY(pvt), EntityZ(pvt))
+							ScaleEntity(item\model, -item\itemtemplate\scale, item\itemtemplate\scale, item\itemtemplate\scale, True)
+							RotateEntity(item\collider, 0, EntityYaw(Camera) - 90, 0)
+							MoveEntity(pvt, -0.2, -0.2, -0.2)
+							item = CreateItem("hand", EntityX(pvt), EntityY(pvt), EntityZ(pvt))
+							RotateEntity(item\collider, 0, EntityYaw(Camera) + 90 + Rnd(10, 45), 0)
+							Bloodloss = Max(Bloodloss, 2.5)
+							Injuries = Max(Injuries, 15)
+							BlurTimer = 10 * 70
+							CameraShake = 3
+							LostHands = True
+							PlaySound_Strict(LoadTempSound("SFX\General\Slash1.ogg"))
+							FreeEntity(pvt)
+							Return
+						EndIf
 				End Select
 				
 				If item\itemtemplate\sound <> 66 Then PlaySound_Strict(PickSFX(item\itemtemplate\sound))
@@ -713,6 +754,8 @@ Function DropItem(item.Items,playdropsound%=True)
 			Wearing1499 = False
 		Case "scp427"
 			I_427\Using = False
+		Case "pumpkin"
+			WearingPumpkin = False
 	End Select
 	
 	CatchErrors("DropItem")

@@ -449,10 +449,12 @@ Global SCP1025state#[6]
 
 Global HeartBeatRate#, HeartBeatTimer#, HeartBeatVolume#
 
-Global WearingGasMask%, WearingHazmat%, WearingVest%, Wearing714%, WearingNightVision%
+Global WearingGasMask%, WearingHazmat%, WearingVest%, Wearing714%, WearingNightVision%, WearingPumpkin%
 Global NVTimer#
 
 Global SuperMan%, SuperManTimer#
+
+Global LostHands%
 
 Global Injuries#, Bloodloss#, Infect#, HealTimer#
 
@@ -1282,7 +1284,7 @@ Function UpdateConsole()
 					;[Block]
 					HalloweenTex = Not HalloweenTex
 					If HalloweenTex Then
-						Local tex = LoadTexture_Strict("GFX\npcs\173h.pt", 1)
+						Local tex = LoadTexture_Strict("GFX\npcs\Halloween\173h.pt", 1)
 						EntityTexture Curr173\obj, tex, 0, 0
 						FreeTexture tex
 						CreateConsoleMsg("173 JACK-O-LANTERN ON")
@@ -2205,7 +2207,16 @@ Global SprintIcon% = 0
 Global BlinkIcon% = 0
 Global CrouchIcon% = 0
 Global HandIcon% = 0
+Global HandIconStump% = 0
 Global HandIcon2% = 0
+
+Function GetUsedHandIcon%()
+	If LostHands Then
+		If HandIconStump = 0 Then HandIconStump = LoadImage_Strict("GFX\Halloween\handsymbol_stump.png")
+		Return HandIconStump
+	EndIf
+	Return HandIcon
+End Function
 
 Global StaminaMeterIMG% = 0
 
@@ -3139,6 +3150,8 @@ Global Collider%, Head%
 Global FogNVTexture%
 Global NVTexture%, NVOverlay%
 
+Global PumpkinTexture%, PumpkinOverlay%
+
 Global TeslaTexture%
 
 Global LightTexture%, Light%
@@ -3377,6 +3390,7 @@ While IsRunning
 			PlayerSoundVolume = CurveValue(0.0, PlayerSoundVolume, 5.0)
 			
 			CanSave% = True
+			If LostHands Then CanSave = False
 			UpdateDeafPlayer()
 			UpdateEmitters()
 			MouseLook()
@@ -5045,6 +5059,47 @@ Function MouseLook(handleInput% = True)
 		HideEntity(NVOverlay)
 		EntityTexture(Fog, FogTexture)
 	EndIf
+
+	If WearingPumpkin Then
+		If Not EntityExist(PumpkinOverlay) Then
+			PumpkinTexture = LoadTexture_Strict("GFX\Halloween\PumpkinOverlay.png", 1)
+			PumpkinOverlay = CreateSprite(ark_blur_cam)
+			ScaleSprite(PumpkinOverlay, 1.0, Max(Float(GraphicHeight) / Float(GraphicWidth), 0.8))
+			EntityTexture(PumpkinOverlay, PumpkinTexture)
+			EntityBlend (PumpkinOverlay, 2)
+			EntityFX(PumpkinOverlay, 1)
+			EntityOrder PumpkinOverlay, -1004
+			MoveEntity(PumpkinOverlay, 0, 0, 1.0)
+		Else
+			ShowEntity(PumpkinOverlay)
+		EndIf
+		Local lifeTime%
+		Select SelectedDifficulty\otherFactors
+			Case EASY
+				lifeTime = 6 * 60 * 70
+			Case NORMAL
+				lifeTime = 4 * 60 * 70
+			Case HARD
+				lifeTime = 2 * 60 * 70
+		End Select
+		For it.Items = Each Items
+			If it\itemtemplate\name <> "pumpkin" Lor (Not it\Picked) Then Continue
+			If it\state < lifeTime / 2 And it\state + FPSfactor >= lifeTime / 2 Then
+				Msg = "The pumpkin mask is starting to rot."
+				MsgTimer = 5 * 70
+			EndIf
+
+			it\state = it\state + FPSfactor
+			If it\state >= lifeTime Then
+				Msg = "The pumpkin mask rotted away."
+				MsgTimer = 5 * 70
+				RemoveItem(it)
+			EndIf
+			Exit
+		Next
+	Else
+		If EntityExist(PumpkinOverlay) Then HideEntity(PumpkinOverlay)
+	EndIf
 	
 	For i = 0 To 5
 		If SCP1025state[i]>0 Then
@@ -5207,7 +5262,7 @@ Function DrawGUI()
 			
 			FreeEntity (temp)
 			
-			DrawImage(HandIcon, GraphicWidth / 2 + Sin(yawvalue) * (GraphicWidth / 3) - 32 * HUDScale, GraphicHeight / 2 - Sin(pitchvalue) * (GraphicHeight / 3) - 32 * HUDScale)
+			DrawImage(GetUsedHandIcon(), GraphicWidth / 2 + Sin(yawvalue) * (GraphicWidth / 3) - 32 * HUDScale, GraphicHeight / 2 - Sin(pitchvalue) * (GraphicHeight / 3) - 32 * HUDScale)
 		EndIf
 
 		If MouseUp1 Then
@@ -5234,8 +5289,9 @@ Function DrawGUI()
 			
 			DrawImage(HandIcon2, GraphicWidth / 2 + Sin(yawvalue) * (GraphicWidth / 3) - 32 * HUDScale, GraphicHeight / 2 - Sin(pitchvalue) * (GraphicHeight / 3) - 32 * HUDScale)
 		EndIf
-	
-		If DrawHandIcon Then DrawImage(HandIcon, GraphicWidth / 2 - 32 * HUDScale, GraphicHeight / 2 - 32 * HUDScale)
+
+		Local usedHandIcon = GetUsedHandIcon()
+		If DrawHandIcon Then DrawImage(usedHandIcon, GraphicWidth / 2 - 32 * HUDScale, GraphicHeight / 2 - 32 * HUDScale)
 		For i = 0 To 3
 			If DrawArrowIcon(i) Then
 				x = GraphicWidth / 2 - 32 * HUDScale
@@ -5250,7 +5306,7 @@ Function DrawGUI()
 					Case 3
 						x = x - 5 - 64 * HUDScale
 				End Select
-				DrawImage(HandIcon, x, y)
+				DrawImage(usedHandIcon, x, y)
 				Color 0, 0, 0
 				Rect(x + 4, y + 4, 64 * HUDScale - 8, 64 * HUDScale - 8)
 				DrawImage(ArrowIMG(i), x + 21 * HUDScale, y + 21 * HUDScale)
@@ -5683,6 +5739,8 @@ Function DrawGUI()
 						If WearingNightVision=3 Then Rect(x - 3, y - 3, width + 6, height + 6)
 					Case "scp427"
 						If I_427\Using=1 Then Rect(x - 3, y - 3, width + 6, height + 6)
+					Case "pumpkin"
+						If WearingPumpkin=1 Then Rect(x - 3, y - 3, width + 6, height + 6)
 				End Select
 			EndIf
 			
@@ -5951,6 +6009,51 @@ Function DrawGUI()
 									Default
 										Msg = I_Loc\MessageItem_Cantcombine
 										MsgTimer = 70 * 5
+								End Select
+								;[End Block]
+							Case "infbat"
+								;[Block]
+								Select Inventory(MouseSlot)\itemtemplate\name
+									Case "snav", "snav300", "snav310"
+										If SelectedItem\itemtemplate\sound <> 66 Then PlaySound_Strict(PickSFX(SelectedItem\itemtemplate\sound))	
+										RemoveItem (SelectedItem)
+										SelectedItem = Null
+										Inventory(MouseSlot)\state = INFINITY
+										Msg = I_Loc\MessageItem_NavBatReplace
+										MsgTimer = 70 * 5
+									Case "snavulti"
+										Msg = I_Loc\MessageItem_NavBatNoplace
+										MsgTimer = 70 * 5
+									Case "radio"
+										If SelectedItem\itemtemplate\sound <> 66 Then PlaySound_Strict(PickSFX(SelectedItem\itemtemplate\sound))	
+										RemoveItem (SelectedItem)
+										SelectedItem = Null
+										Inventory(MouseSlot)\state = INFINITY
+										Msg = I_Loc\MessageItem_RadioBatReplace
+										MsgTimer = 70 * 5
+									Case "fineradio", "veryfineradio"
+										Msg = I_Loc\MessageItem_RadioBatNoplace
+										MsgTimer = 70 * 5
+									Case "18vradio"
+										If SelectedItem\itemtemplate\sound <> 66 Then PlaySound_Strict(PickSFX(SelectedItem\itemtemplate\sound))	
+										RemoveItem (SelectedItem)
+										SelectedItem = Null
+										Inventory(MouseSlot)\state = INFINITY
+										Msg = I_Loc\MessageItem_RadioBatReplace
+										MsgTimer = 70 * 5
+									Case "supernv", "nvgoggles"
+										If SelectedItem\itemtemplate\sound <> 66 Then PlaySound_Strict(PickSFX(SelectedItem\itemtemplate\sound))	
+										RemoveItem (SelectedItem)
+										SelectedItem = Null
+										Inventory(MouseSlot)\state = INFINITY
+										Msg = I_Loc\MessageItem_NvgBatReplace
+										MsgTimer = 70 * 5
+									Case "finenvgoggles"
+										Msg = I_Loc\MessageItem_NvgBatNoplace
+										MsgTimer = 70 * 5
+									Default
+										Msg = I_Loc\MessageItem_Cantcombine
+										MsgTimer = 70 * 5	
 								End Select
 								;[End Block]
 							Default
@@ -6362,29 +6465,29 @@ Function DrawGUI()
 
 						If GetINIInt2(iniStr, loc, "lethal") Then Kill()
 						
-						BlurTimer = Max(BlurTimer + GetINIInt2(iniStr, loc, "blur")*70, 0);*temp
-						CameraShakeTimer = Max(CameraShakeTimer + GetINIString2(iniStr, loc, "camerashake"), 0)
+						BlurTimer = Max(BlurTimer + GetINIFloat2(iniStr, loc, "blur")*70, 0);*temp
+						CameraShakeTimer = Max(CameraShakeTimer + GetINIFloat2(iniStr, loc, "camerashake"), 0)
 						
-						temp = GetINIInt2(iniStr, loc, "vomit")
-						If temp > 0 Then
+						Local value# = GetINIFloat2(iniStr, loc, "vomit")
+						If value > 0 Then
 							If VomitTimer = 0 Then
-								VomitTimer = temp
+								VomitTimer = value
 							Else
-								VomitTimer = Min(VomitTimer, temp)
+								VomitTimer = Min(VomitTimer, value)
 							EndIf
 						EndIf
 						
-						temp = GetINIInt2(iniStr, loc, "deathtimer")*70
-						If temp > 0 Then
+						value = GetINIFloat2(iniStr, loc, "deathtimer")*70
+						If value > 0 Then
 							If DeathTimer = 0 Then
-								DeathTimer = temp
+								DeathTimer = value
 							Else
-								DeathTimer = Min(DeathTimer, temp)
+								DeathTimer = Min(DeathTimer, value)
 							EndIf
 						EndIf
 						
-						Injuries = Max(Injuries + GetINIInt2(iniStr, loc, "damage") + GetINIInt2(iniStr, loc, "injuries"), 0);*temp
-						Bloodloss = Max(Bloodloss + GetINIInt2(iniStr, loc, "blood loss"), 0);*temp
+						Injuries = Max(Injuries + GetINIFloat2(iniStr, loc, "damage") + GetINIFloat2(iniStr, loc, "injuries"), 0);*temp
+						Bloodloss = Max(Bloodloss + GetINIFloat2(iniStr, loc, "blood loss"), 0);*temp
 						
 						If GetINIInt2(iniStr, loc, "stomachache") Lor GetINIInt2(iniStr, loc, "stomach ache") Then SCP1025state[3]=Max(1, SCP1025state[3])
 						
@@ -7353,6 +7456,57 @@ Function DrawGUI()
 						RemoveItem(SelectedItem)
 						SelectedItem = Null
 					EndIf
+					;[End Block]
+				Case "eyecandy"
+					;[Block]
+					If CanUseItem(False, False, True)
+						Msg = "You swallowed the candy. It tastes sour and gooey. You feel a presence emerging nearby."
+						MsgTimer = 70*7
+
+						RemoveItem(SelectedItem)
+						SelectedItem = Null
+
+						; Select a room that is exactly two rooms away from the player.
+						Local startRoom.Rooms = PlayerRoom
+						Local selectedRoom.Rooms
+						For i = 0 To 1
+							Local rndIdx% = Rand(0, 3)
+							For j = 0 To 3
+								selectedRoom = startRoom\Adjacent[(rndIdx + j) Mod 4]
+								If selectedRoom <> Null And selectedRoom <> PlayerRoom
+									Exit
+								EndIf
+							Next
+							startRoom = selectedRoom
+						Next
+						
+						For w.WayPoints = Each WayPoints
+							If w\Room = selectedRoom Then
+ 								Local jello.NPCs = CreateNPC(NPCtype066, EntityX(w\obj, True), EntityY(w\obj, True) + 0.1, EntityZ(w\obj, True))
+								CreateItem("infbat", EntityX(jello\Collider), EntityY(jello\Collider), EntityZ(jello\Collider))
+								ChangeNPCTextureID(jello, 0)
+								Exit
+							EndIf
+						Next
+					EndIf
+					;[End Block]
+				Case "pumpkin"
+					;[Block]
+					If Wearing1499 = 0 And WearingHazmat = 0 And WearingGasMask = 0 Then
+						If WearingPumpkin Then
+							Msg = "You put on the pumpkin mask and feel invisible."
+						Else
+							Msg = "You took off the pumpkin mask."
+							If WearingNightVision Then CameraFogFar = StoredCameraFogFar
+							WearingNightVision = 0
+						EndIf
+						WearingPumpkin = Not WearingPumpkin
+						NoTarget = Not NoTarget
+					Else
+						Msg = "Can't wear"
+					EndIf
+					SelectedItem = Null
+					MsgTimer = 70 * 5
 					;[End Block]
 				Default
 					If SelectedItem\itemtemplate\group = "paper" Lor SelectedItem\itemtemplate\name = "ticket" Then
@@ -9448,6 +9602,7 @@ Function NullGame(playbuttonsfx%=True)
 	BlurTimer = 0
 	SuperMan = False
 	SuperManTimer = 0
+	LostHands = False
 	Sanity = 0
 	RestoreSanity = True
 	Crouch = False
@@ -10541,7 +10696,7 @@ Function Use914(item.Items, setting$, x#, y#, z#)
 			End Select
 			
 			RemoveItem(item)
-		Case "bat", "18vbat", "killbat"
+		Case "bat", "18vbat", "killbat", "infbat"
 			Select setting
 				Case "rough", "coarse"
 					d.Decals = CreateDecal(0, x, 8 * RoomScale + 0.010, z, 90, Rand(360), 0)
@@ -10670,7 +10825,6 @@ Function Use914(item.Items, setting$, x#, y#, z#)
 			
 			RemoveItem(item)
 		Default
-			
 			If item\itemtemplate\group = "paper" Then
 				Select setting
 					Case "rough", "coarse"
@@ -10695,6 +10849,31 @@ Function Use914(item.Items, setting$, x#, y#, z#)
 						it2 = CreateItem("origami", x, y, z)
 				End Select
 				
+				RemoveItem(item)
+			ElseIf item\itemtemplate\group = "candy" Then
+				Select setting
+					Case "rough", "coarse"
+						d.Decals = CreateDecal(22, x, 8*RoomScale+0.011, z, 90, Rand(360), 0)
+						d\Size = 0.2 : ScaleSprite(d\obj, d\Size, d\Size)
+					Case "1:1"
+						Select Rand(3)
+							Case 1
+								it2 = CreateItem("eyecandy", x, y, z)
+							Case 2
+								it2 = CreateItem("candylolly", x, y, z)
+							Case 3
+								it2 = CreateItem("candybar", x, y, z)
+						End Select
+					Case "fine"
+						it2 = CreateItem("joint", x, y, z)
+					Case "very fine"
+						If Rand(3) = 1 Then
+							it2 = CreateItem("scp500", x, y, z)
+						Else
+							it2 = CreateItem("scp500death", x, y, z)
+						End If
+				End Select
+
 				RemoveItem(item)
 			Else
 				PositionEntity(item\collider, x, y, z)
@@ -11645,6 +11824,10 @@ Function GetINIInt2%(file$, start%, parameter$, defaultvalue$="")
 	EndIf
 End Function
 
+Function GetINIFloat2#(file$, start%, parameter$, defaultvalue# = 0.0)
+	Return Float(GetINIString2(file$, start%, parameter$, defaultvalue#))
+End Function
+
 
 Function GetINISectionLocation%(file$, section$)
 	Local Temp%
@@ -12373,7 +12556,7 @@ Function CanUseItem(canUseWithHazmat%, canUseWithGasMask%, canUseWithEyewear%)
 		Msg = I_Loc\MessageItem_HazmatNouse
 		MsgTimer = 70*5
 		Return False
-	ElseIf (canUseWithGasMask = False And (WearingGasMask Or Wearing1499))
+	ElseIf (canUseWithGasMask = False And (WearingGasMask Or Wearing1499 Or WearingPumpkin))
 		Msg = I_Loc\MessageItem_GasmaskNouse
 		MsgTimer = 70*5
 		Return False
