@@ -2212,7 +2212,7 @@ Global HandIcon2% = 0
 
 Function GetUsedHandIcon%()
 	If LostHands Then
-		If HandIconStump = 0 Then HandIconStump = LoadImage_Strict("GFX\Halloween\handsymbol_stump.png")
+		If HandIconStump = 0 Then HandIconStump = LoadImageHUDScaled("GFX\Halloween\handsymbol_stump.png")
 		Return HandIconStump
 	EndIf
 	Return HandIcon
@@ -5069,7 +5069,7 @@ Function MouseLook(handleInput% = True)
 			EntityBlend (PumpkinOverlay, 2)
 			EntityFX(PumpkinOverlay, 1)
 			EntityOrder PumpkinOverlay, -1004
-			MoveEntity(PumpkinOverlay, 0, 0, 1.0)
+			MoveEntity(PumpkinOverlay, -PixelWidth, PixelHeight, 1.0)
 		Else
 			ShowEntity(PumpkinOverlay)
 		EndIf
