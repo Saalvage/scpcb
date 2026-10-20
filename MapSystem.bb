@@ -5533,6 +5533,9 @@ Function FillRoom(r.Rooms)
 			PositionEntity r\Levers[0],r\x+205.0*RoomScale,r\y+200.0*RoomScale,r\z+2287.0*RoomScale
 			EntityParent r\Levers[0],r\obj
 			;[End Block]
+		Case "room4info"
+			it = CreateItem("scp330", r\x + 1.2, r\y + 0.56, r\z - 2.8)
+			EntityParent(it\collider, r\obj)
 	End Select
 	
 	For lt.lighttemplates = Each LightTemplates

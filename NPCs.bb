@@ -3894,11 +3894,19 @@ Function UpdateNPCs()
 						EndIf
 						dist = Distance(EntityX(Collider),EntityZ(Collider),EntityX(n\Collider),EntityZ(n\Collider))
 						
-						If Rand(700/FPSfactor)=1 Then PlaySound2(LoadTempSound("SFX\SCP\066\Eric"+Rand(1,3)+".ogg"),Camera, n\Collider, 8.0)
-						
+						If Rand(700/FPSfactor)=1 Then
+							Local soundPath$ = "SFX\SCP\066\"
+							If n\TextureID = 1 Then soundPath = soundPath + "Halloween\"
+							PlaySound2(LoadTempSound(soundPath+"Eric"+Rand(1,3)+".ogg"),Camera, n\Collider, 8.0)
+						EndIf
+
 						If dist < 1.0+n\LastDist Then
-							GiveAchievement(Achv066)
-							n\State = Rand(2,3)
+							If n\TextureID = 1 Then
+								n\State = Rand(4,6) / 2 ; Only 1/3 chance to try and flee
+							Else
+								n\State = Rand(2,3)
+								GiveAchievement(Achv066)
+							EndIf
 						EndIf
 					Case 2 ;roll towards the player and make a sound, and then escape	
 						If n\Frame < 647 Then 
@@ -3914,13 +3922,20 @@ Function UpdateNPCs()
 						Else
 							If n\Frame=683 Then 
 								If n\State2 = 0 Then
+									soundPath$ = "SFX\SCP\066\"
+									If n\TextureID = 1 Then soundPath = soundPath + "Halloween\"
 									If Rand(2)=1 Then
-										PlaySound2(LoadTempSound("SFX\SCP\066\Eric"+Rand(1,3)+".ogg"),Camera, n\Collider, 8.0)
+										PlaySound2(LoadTempSound(soundPath+"Eric"+Rand(1,3)+".ogg"),Camera, n\Collider, 8.0)
 									Else
-										PlaySound2(LoadTempSound("SFX\SCP\066\Notes"+Rand(1,6)+".ogg"), Camera, n\Collider, 8.0)
-									EndIf									
-									
-									Select Rand(1,6)
+										PlaySound2(LoadTempSound(soundPath+"Notes"+Rand(1,6)+".ogg"), Camera, n\Collider, 8.0)
+									EndIf
+
+									Local minAction% = 1, maxAction% = 6
+									If n\TextureID = 1 Then
+										minAction = 2 ; We don't want beethoven on Jell-0-66
+										maxAction = 5 ; We don't want the stomp either, as the transparency breaks with Jell-0-66
+									EndIf
+									Select Rand(minAction,maxAction)
 										Case 1
 											If n\Sound2=0 Then n\Sound2=LoadSound_Strict("SFX\SCP\066\Beethoven.ogg")
 											n\SoundChn2 = PlaySound2(n\Sound2, Camera, n\Collider, 20.0, 1.0, False)
@@ -3939,7 +3954,7 @@ Function UpdateNPCs()
 													EndIf
 												EndIf
 											Next
-										Case 4
+										Case 6
 											If PlayerRoom\RoomTemplate\DisableDecals = False Then
 												CameraShake = 5.0
 												de.Decals = CreateDecal(1, EntityX(n\Collider), 0.01, EntityZ(n\Collider), 90, Rand(360), 0)
@@ -4026,6 +4041,31 @@ Function UpdateNPCs()
 				
 				If ChannelPlaying(n\SoundChn2)
 					BlurTimer = Max((5.0-dist)*300,0)
+				EndIf
+
+				If n\TextureID = 1 Then
+					Local found% = False
+					For it.Items = Each Items
+						If it\itemtemplate\group = "battery" Then
+							If EntityDistance(it\collider, n\Collider) < 0.4
+								If it\Picked Then
+									EntityParent(it\collider, 0)
+									PositionEntity(it\collider, 0, 0, 0)
+								Else
+									EntityParent(it\collider, n\Collider)
+									PositionEntity(it\collider, 0, 0, 0)
+									found = True
+									Exit
+								EndIf
+							EndIf
+						EndIf
+					Next
+
+					If Not found Then
+						n\State = 66
+					Else If n\State = 66 Then
+						n\State = 0
+					EndIf
 				EndIf
 				
 				PositionEntity(n\obj, EntityX(n\Collider), EntityY(n\Collider) - 0.2, EntityZ(n\Collider))
@@ -7586,15 +7626,33 @@ Function ChangeNPCTextureID(n.NPCs,textureid%)
 	EndIf
 	
 	n\TextureID = textureid%+1
-	FreeEntity n\obj
-	n\obj = CopyEntity(DTextures[textureid%+1])
-	
-	Local temp# = 0.5 / MeshWidth(n\obj)
-	ScaleEntity n\obj, temp, temp, temp
-	MeshCullBox (n\obj, -MeshWidth(ClassDObj), -MeshHeight(ClassDObj), -MeshDepth(ClassDObj)*4, MeshWidth(ClassDObj)*2, MeshHeight(ClassDObj)*2, MeshDepth(ClassDObj)*8)
+
+	Local oldObj = n\obj
+	If n\NPCtype = NPCtype066 And n\TextureID = 1 Then
+		Local found% = False
+		For n2.NPCs = Each NPCs
+			If n2 <> n And n2\NPCtype = NPCtype066 And n2\TextureID = n\TextureID Then
+				n\obj = CopyEntity(n2\obj)
+				found% = True
+				Exit
+			EndIf
+		Next
+		If Not found% Then
+			n\obj = LoadAnimMesh_Strict("GFX\npcs\Halloween\jell066.b3d")
+			Local temp# = GetModdedINIFloat("DATA\NPCs.ini", "SCP-066", "scale")/2.5
+			ScaleEntity n\obj, temp, temp, temp
+		EndIf
+	Else
+		n\obj = CopyEntity(DTextures[textureid%+1])
+		
+		temp# = 0.5 / MeshWidth(n\obj)
+		ScaleEntity n\obj, temp, temp, temp
+		MeshCullBox (n\obj, -MeshWidth(ClassDObj), -MeshHeight(ClassDObj), -MeshDepth(ClassDObj)*4, MeshWidth(ClassDObj)*2, MeshHeight(ClassDObj)*2, MeshDepth(ClassDObj)*8)
+	EndIf
 	
 	SetNPCFrame(n,n\Frame)
-	
+
+	FreeEntity oldObj
 End Function
 
 
