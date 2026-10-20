@@ -5275,6 +5275,10 @@ Function DrawGUI()
 					UseDoor(ClosestDoor,True)				
 				EndIf
 			EndIf
+			; Shaking from pain
+			If LostHands Then
+				CameraShake = 1
+			EndIf
 		EndIf
 	EndIf
 	
@@ -6090,6 +6094,7 @@ Function DrawGUI()
 							WearingNightVision = 0
 							StoredCameraFogFar = CameraFogFar
 							CameraFogFar = 30
+							WearingPumpkin = 0
 						EndIf
 						
 						WearingNightVision = (Not WearingNightVision)
@@ -6113,6 +6118,7 @@ Function DrawGUI()
 							WearingNightVision = 0
 							StoredCameraFogFar = CameraFogFar
 							CameraFogFar = 30
+							WearingPumpkin = 0
 						EndIf
 						
 						WearingNightVision = (Not WearingNightVision) * 2
@@ -6136,6 +6142,7 @@ Function DrawGUI()
 							WearingNightVision = 0
 							StoredCameraFogFar = CameraFogFar
 							CameraFogFar = 30
+							WearingPumpkin = 0
 						EndIf
 						
 						WearingNightVision = (Not WearingNightVision) * 3
@@ -6995,6 +7002,7 @@ Function DrawGUI()
 								If WearingNightVision Then CameraFogFar = StoredCameraFogFar
 								WearingGasMask = 0
 								WearingNightVision = 0
+								WearingPumpkin = 0
 							EndIf
 							SelectedItem\state=0
 							MsgTimer = 70 * 5
@@ -7044,6 +7052,7 @@ Function DrawGUI()
 							If WearingNightVision Then CameraFogFar = StoredCameraFogFar
 							WearingNightVision = 0
 							WearingGasMask = 0
+							WearingPumpkin = 0
 						EndIf
 						If SelectedItem\itemtemplate\name="gasmask3" Then
 							If WearingGasMask = 0 Then WearingGasMask = 3 Else WearingGasMask=0
@@ -7312,6 +7321,7 @@ Function DrawGUI()
 							If WearingNightVision Then CameraFogFar = StoredCameraFogFar
 							WearingGasMask = 0
 							WearingNightVision = 0
+							WearingPumpkin = 0
 							For r.Rooms = Each Rooms
 								If r\RoomTemplate\Name = "dimension1499" Then
 									BlinkTimer = -1
@@ -7460,6 +7470,8 @@ Function DrawGUI()
 				Case "eyecandy"
 					;[Block]
 					If CanUseItem(False, False, True)
+						If SteamActive Then Steam_SetStatInt("candies_eaten", Steam_GetStatInt("candies_eaten") + 1)
+
 						Msg = "You swallowed the candy. It tastes sour and gooey. You feel a presence emerging nearby."
 						MsgTimer = 70*7
 
@@ -7494,14 +7506,14 @@ Function DrawGUI()
 					;[Block]
 					If Wearing1499 = 0 And WearingHazmat = 0 And WearingGasMask = 0 Then
 						If WearingPumpkin Then
-							Msg = "You put on the pumpkin mask and feel invisible."
-						Else
 							Msg = "You took off the pumpkin mask."
+						Else
+							Msg = "You put on the pumpkin mask and feel invisible."
 							If WearingNightVision Then CameraFogFar = StoredCameraFogFar
 							WearingNightVision = 0
 						EndIf
 						WearingPumpkin = Not WearingPumpkin
-						NoTarget = Not NoTarget
+						NoTarget = WearingPumpkin
 					Else
 						Msg = "Can't wear"
 					EndIf
@@ -9556,6 +9568,7 @@ Function NullGame(playbuttonsfx%=True)
 	WearingHazmat = 0
 	WearingVest = 0
 	Wearing714 = 0
+	WearingPumpkin = 0
 	If WearingNightVision Then
 		CameraFogFar = StoredCameraFogFar
 		WearingNightVision = 0
@@ -9706,6 +9719,8 @@ Function NullGame(playbuttonsfx%=True)
 	
 	DeleteDevilEmitters()
 	
+	LostHands = False
+
 	NoTarget% = False
 	
 	OptionsMenu% = 0
@@ -12556,11 +12571,11 @@ Function CanUseItem(canUseWithHazmat%, canUseWithGasMask%, canUseWithEyewear%)
 		Msg = I_Loc\MessageItem_HazmatNouse
 		MsgTimer = 70*5
 		Return False
-	ElseIf (canUseWithGasMask = False And (WearingGasMask Or Wearing1499 Or WearingPumpkin))
+	ElseIf (canUseWithGasMask = False And (WearingGasMask Or Wearing1499))
 		Msg = I_Loc\MessageItem_GasmaskNouse
 		MsgTimer = 70*5
 		Return False
-	ElseIf (canUseWithEyewear = False And (WearingNightVision))
+	ElseIf (canUseWithEyewear = False And (WearingNightVision Or WearingPumpkin))
 		Msg = I_Loc\MessageItem_NvgNouse
 		MsgTimer = 70*5
 		Return False

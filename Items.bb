@@ -649,6 +649,7 @@ Function PickItem(item.Items)
 							SelectedItem = item
 						EndIf
 					Case "scp330"
+						If SteamActive Then Steam_SetStatInt("has_grabbed_candy", 1)
 						If item\state < 2 Then
 							item\state = item\state + 1
 							Local candy%, candyMask%
