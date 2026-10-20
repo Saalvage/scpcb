@@ -8492,6 +8492,7 @@ Function DrawMenu()
 							FPSfactor = 0
 							
 							ResetInput()
+							Return
 						EndIf
 					Else
 						DrawFrame(x,y,390*MenuScale, 60*MenuScale)
@@ -8548,6 +8549,7 @@ Function DrawMenu()
 						FPSfactor = 0
 						
 						ResetInput()
+						Return
 					EndIf
 				Else
 					DrawButton(x, y, 390*MenuScale, 60*MenuScale, "")
