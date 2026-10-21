@@ -637,6 +637,13 @@ Function RemoveNPC(n.NPCs)
 	
 	If n=Null Then Return
 	
+	; This avoids freeing independent child entities.
+	; In practice this is an issue with Halloween SCP-066 and the batteries it holds.
+	Local childCount% = CountChildren(n\Collider)
+	For i = 1 To childCount
+		EntityParent(GetChild(n\Collider, i), 0)
+	Next
+
 	If n\obj2 <> 0 Then 
 		FreeEntity n\obj2
 		n\obj2 = 0
@@ -4046,17 +4053,14 @@ Function UpdateNPCs()
 				If n\TextureID = 1 Then
 					Local found% = False
 					For it.Items = Each Items
-						If it\itemtemplate\group = "battery" Then
-							If EntityDistance(it\collider, n\Collider) < 0.4
-								If it\Picked Then
-									EntityParent(it\collider, 0)
-									PositionEntity(it\collider, 0, 0, 0)
-								Else
-									EntityParent(it\collider, n\Collider)
-									PositionEntity(it\collider, 0, 0, 0)
-									found = True
-									Exit
-								EndIf
+						If it\itemtemplate\group = "battery" And  EntityDistance(it\collider, n\Collider) < 0.4
+							If Not it\Picked Then
+								EntityParent(it\collider, n\Collider)
+								PositionEntity(it\collider, CurveValue(0, EntityX(it\collider), 20), CurveValue(0, EntityY(it\collider), 20), CurveValue(0, EntityZ(it\collider), 20))
+								found = True
+							ElseIf GetParent(it\collider) = n\Collider Then
+								EntityParent(it\collider, 0)
+								PositionEntity(it\collider, 0, 0, 0)
 							EndIf
 						EndIf
 					Next

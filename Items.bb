@@ -652,17 +652,18 @@ Function PickItem(item.Items)
 						If SteamActive Then Steam_SetStatInt("has_grabbed_candy", 1)
 						If item\state < 2 Then
 							item\state = item\state + 1
-							Local candy%, candyMask%
-							Repeat
-								candy = Rand(0, 2)
+							Local candyStart% = Rand(0, 2), candy%, candyMask%
+							For i% = 0 To 2
+								candy = (candyStart + i) Mod 3
 								candyMask = 1 Shl candy
-							Until Not (item\state2 And candyMask)
+								If Not (item\state2 And candyMask) Then Exit
+							Next
 							item\state2 = item\state2 Or candyMask
 							Select candy
 								Case 0
 									item = CreateItem("eyecandy", 0, 0, 0)
 								Case 1
-									item = CreateItem("candylolly", 0, 0, 0)
+									item = CreateItem("lollipop", 0, 0, 0)
 								Case 2
 									item = CreateItem("candybar", 0, 0, 0)
 							End Select

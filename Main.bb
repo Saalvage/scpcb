@@ -7495,11 +7495,39 @@ Function DrawGUI()
 						For w.WayPoints = Each WayPoints
 							If w\Room = selectedRoom Then
  								Local jello.NPCs = CreateNPC(NPCtype066, EntityX(w\obj, True), EntityY(w\obj, True) + 0.1, EntityZ(w\obj, True))
-								CreateItem("infbat", EntityX(jello\Collider), EntityY(jello\Collider), EntityZ(jello\Collider))
+								CreateItem("infbat", EntityX(jello\Collider, True), EntityY(jello\Collider, True), EntityZ(jello\Collider, True))
 								ChangeNPCTextureID(jello, 0)
 								Exit
 							EndIf
 						Next
+					EndIf
+					;[End Block]
+				Case "lollipop"
+					;[Block]
+					If CanUseItem(False, False, True)
+						If SteamActive Then Steam_SetStatInt("candies_eaten", Steam_GetStatInt("candies_eaten") + 1)
+
+						Msg = "You ate the lollipop. It tastes of pumpkin pie. You find yourself in a strangely familiar place."
+						MsgTimer = 70*7
+
+						RemoveItem(SelectedItem)
+						SelectedItem = Null
+
+						Local found% = False
+						For e.Events = Each Events
+							If e\EventName = "halloweenfields" Then
+								Teleport(e\room)
+								found = True
+								Exit
+							EndIf
+						Next
+
+						If Not found Then
+							Teleport(CreateRoom(0, ROOM1, 32, 1000, 0, 0, "halloweenfields"))
+							CreateEvent("halloweenfields","halloweenfields",0)
+						EndIf
+
+						BlinkTimer = -10
 					EndIf
 					;[End Block]
 				Case "pumpkin"
@@ -8512,6 +8540,7 @@ Function DrawMenu()
 							FPSfactor = 0
 							
 							ResetInput()
+							Return
 						EndIf
 					Else
 						DrawFrame(x,y,390*MenuScale, 60*MenuScale)
@@ -8568,6 +8597,7 @@ Function DrawMenu()
 						FPSfactor = 0
 						
 						ResetInput()
+						Return
 					EndIf
 				Else
 					DrawButton(x, y, 390*MenuScale, 60*MenuScale, "")
@@ -10839,6 +10869,25 @@ Function Use914(item.Items, setting$, x#, y#, z#)
 			End Select	
 			
 			RemoveItem(item)
+
+		Case "pumpkin"
+			Select setting
+				Case "rough", "coarse"
+					d.Decals = CreateDecal(4, x, 8 * RoomScale + 0.010, z, 90, Rand(360), 0)
+					d\Size = 0.3 : ScaleSprite(d\obj, d\Size, d\Size)
+					RemoveItem(item)
+				Case "1:1"
+					PositionEntity(item\collider, x, y, z)
+					ResetEntity(item\collider)
+				Case "fine", "very fine"
+					n.NPCs = CreateNPC(NPCtype173,x,y,z)
+					Local texFestive = LoadTexture_Strict("GFX\npcs\173h.pt", 1)
+					EntityTexture n\obj, texFestive, 0, 0
+					FreeTexture texFestive
+					PlaySound2(LoadTempSound("SFX\ambient\general\ambient3.ogg"), Camera, n\Collider)
+					RemoveItem(item)
+			End Select
+
 		Default
 			If item\itemtemplate\group = "paper" Then
 				Select setting
@@ -10875,7 +10924,7 @@ Function Use914(item.Items, setting$, x#, y#, z#)
 							Case 1
 								it2 = CreateItem("eyecandy", x, y, z)
 							Case 2
-								it2 = CreateItem("candylolly", x, y, z)
+								it2 = CreateItem("lollipop", x, y, z)
 							Case 3
 								it2 = CreateItem("candybar", x, y, z)
 						End Select

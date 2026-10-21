@@ -1017,8 +1017,6 @@ Function PlaceForest(fr.Forest,x#,y#,z#,r.Rooms)
 	Local GroundTexture = LoadTexture_Strict("GFX\map\forest\forestfloor.jpg")
 	Local PathTexture = LoadTexture_Strict("GFX\map\forest\forestpath.jpg")
 	
-	hmapFlags% = 1+16+32+256+512+16384
-	maskFlags% = hmapFlags+2
 	hmap[ROOM1]=LoadTexture_Strict("GFX\map\forest\forest1h.png",hmapFlags)
 	mask[ROOM1]=LoadTexture_Strict("GFX\map\forest\forest1h_mask.png",maskFlags)
 	
@@ -1122,59 +1120,7 @@ Function PlaceForest(fr.Forest,x#,y#,z#,r.Rooms)
 				End Select
 				
 				If tile_type > 0 Then 
-					
-					;place trees and other details
-					;only placed on spots where the value of the heightmap is above 100
-					Local width = TextureWidth(hmap[tile_type])
-					Local buf% = TextureBuffer(hmap[tile_type])
-					LockBuffer(buf)
-					tempf4# = (tempf3/Float(width))
-					For lx = 3 To width-2
-						For ly = 3 To width-2
-							Local red% = (ReadPixelFast(lx,width-ly,buf) And $FF0000) Shr 16
-							
-							If red>Rand(100,260) Then
-								Select Rand(0,7)
-									Case 0,1,2,3,4,5,6 ;create a tree
-										detail_entity=CopyEntity(fr\DetailMesh[0])
-										;EntityType detail_entity,HIT_MAP
-										tempf2=Rnd(0.25,0.4)
-										
-										For i = 0 To 3
-											Local d=CopyEntity(fr\DetailMesh[2])
-											;ScaleEntity d,tempf2*1.1,tempf2,tempf2*1.1,True
-											RotateEntity d, 0, 90*i+Rnd(-20,20), 0
-											EntityParent(d,detail_entity)
-											
-											EntityFX d, 1;+8
-										Next
-										
-										ScaleEntity detail_entity,tempf2*1.1,tempf2,tempf2*1.1,True
-										PositionEntity detail_entity,lx*tempf4-(tempf3/2.0),red*0.03-Rnd(3.0,3.2),ly*tempf4-(tempf3/2.0),True
-										
-										RotateEntity detail_entity,Rnd(-5,5),Rnd(360.0),0.0,True
-										
-										;EntityAutoFade(detail_entity,4.0,6.0)
-									Case 7 ;add a rock
-										detail_entity=CopyEntity(fr\DetailMesh[1])
-										;EntityType detail_entity,HIT_MAP
-										tempf2=Rnd(0.01,0.012)
-										;ScaleEntity detail_entity,tempf2,tempf2*Rnd(1.0,2.0),tempf2,True
-										
-										PositionEntity detail_entity,lx*tempf4-(tempf3/2.0),red*0.03-1.3,ly*tempf4-(tempf3/2.0),True
-										
-										EntityFX detail_entity, 1
-										
-										RotateEntity detail_entity,0.0,Rnd(360.0),0.0,True
-								End Select
-								
-								EntityFX detail_entity, 1
-								;PositionEntity detail_entity,Rnd(0.0,tempf3)-(tempf3/2.0),red*0.03-0.05,Rnd(0.0,tempf3)-(tempf3/2.0),True
-								EntityParent detail_entity,tile_entity
-							EndIf
-						Next
-					Next
-					UnlockBuffer(buf)
+					PlaceForestProps(tile_entity, hmap[tile_type], tempf3, fr\DetailMesh[0], fr\DetailMesh[2], fr\DetailMesh[1])
 					
 					ScaleEntity tile_entity,tempf1,tempf1,tempf1
 					
@@ -1259,6 +1205,9 @@ Function PlaceForest(fr.Forest,x#,y#,z#,r.Rooms)
 	CatchErrors("PlaceForest")
 End Function
 
+Const hmapFlags% = 1+16+32+256+512+16384
+Const maskFlags% = hmapFlags+2
+
 Function PlaceForest_MapCreator(fr.Forest,x#,y#,z#,r.Rooms)
 	CatchErrors("Uncaught (PlaceForest_MapCreator)")
 	;local variables
@@ -1281,8 +1230,6 @@ Function PlaceForest_MapCreator(fr.Forest,x#,y#,z#,r.Rooms)
 	Local GroundTexture = LoadTexture_Strict("GFX\map\forest\forestfloor.jpg")
 	Local PathTexture = LoadTexture_Strict("GFX\map\forest\forestpath.jpg")
 	
-	hmapFlags% = 1+16+32+256+512+16384
-	maskFlags% = hmapFlags+2
 	hmap[ROOM1]=LoadTexture_Strict("GFX\map\forest\forest1h.png",hmapFlags)
 	mask[ROOM1]=LoadTexture_Strict("GFX\map\forest\forest1h_mask.png",maskFlags)
 	
@@ -1338,62 +1285,7 @@ Function PlaceForest_MapCreator(fr.Forest,x#,y#,z#,r.Rooms)
 				DebugLog "Tile: "+tile_type+"| Angle: "+angle
 				
 				If tile_type > 0 Then 
-					
-					;place trees and other details
-					;only placed on spots where the value of the heightmap is above 100
-					Local width = TextureWidth(hmap[tile_type])
-					Local buf% = TextureBuffer(hmap[tile_type])
-					LockBuffer(buf)
-					tempf4# = (tempf3/Float(width))
-					For lx = 3 To width-2
-						For ly = 3 To width-2
-							GetColor lx,width-ly
-							
-							If red>Rand(100,260) Then
-								detail_entity = 0
-								Select Rand(0,7)
-									Case 0,1,2,3,4,5,6 ;create a tree
-										detail_entity=CopyEntity(fr\DetailMesh[0])
-										;EntityType detail_entity,HIT_MAP
-										tempf2=Rnd(0.25,0.4)
-										
-										For i = 0 To 3
-											Local d=CopyEntity(fr\DetailMesh[2])
-											;ScaleEntity d,tempf2*1.1,tempf2,tempf2*1.1,True
-											RotateEntity d, 0, 90*i+Rnd(-20,20), 0
-											EntityParent(d,detail_entity)
-											
-											EntityFX d, 1;+8
-										Next
-										
-										ScaleEntity detail_entity,tempf2*1.1,tempf2,tempf2*1.1,True
-										PositionEntity detail_entity,lx*tempf4-(tempf3/2.0),red*0.03-Rnd(3.0,3.2),ly*tempf4-(tempf3/2.0),True
-										
-										RotateEntity detail_entity,Rnd(-5,5),Rnd(360.0),0.0,True
-										
-										;EntityAutoFade(detail_entity,4.0,6.0)
-									Case 7 ;add a rock
-										detail_entity=CopyEntity(fr\DetailMesh[1])
-										;EntityType detail_entity,HIT_MAP
-										tempf2=Rnd(0.01,0.012)
-										;ScaleEntity detail_entity,tempf2,tempf2*Rnd(1.0,2.0),tempf2,True
-										
-										PositionEntity detail_entity,lx*tempf4-(tempf3/2.0),red*0.03-1.3,ly*tempf4-(tempf3/2.0),True
-										
-										EntityFX detail_entity, 1
-										
-										RotateEntity detail_entity,0.0,Rnd(360.0),0.0,True
-								End Select
-								
-								If detail_entity <> 0 Then
-									EntityFX detail_entity, 1
-									;PositionEntity detail_entity,Rnd(0.0,tempf3)-(tempf3/2.0),red*0.03-0.05,Rnd(0.0,tempf3)-(tempf3/2.0),True
-									EntityParent detail_entity,tile_entity
-								EndIf
-							EndIf
-						Next
-					Next
-					UnlockBuffer(buf)
+					PlaceForestProps(tile_entity, hmap[tile_type], tempf3, fr\DetailMesh[0], fr\DetailMesh[2], fr\DetailMesh[1])
 					
 					ScaleEntity tile_entity,tempf1,tempf1,tempf1
 					
@@ -1475,6 +1367,61 @@ Function PlaceForest_MapCreator(fr.Forest,x#,y#,z#,r.Rooms)
 	DebugLog "ForestINIT END"
 	
 	CatchErrors("PlaceForest_MapCreator")
+End Function
+
+Function PlaceForestProps(parent%, hmap%, tempf3#, treeMesh%, leafMesh%, rockMesh%)
+	;place trees and other details
+	;only placed on spots where the value of the heightmap is above 100
+	Local width = TextureWidth(hmap)
+	Local buf% = TextureBuffer(hmap)
+	LockBuffer(buf)
+	tempf4# = (tempf3/Float(width))
+	For lx = 3 To width-2
+		For ly = 3 To width-2
+			Local red% = (ReadPixelFast(lx,width-ly,buf) And $FF0000) Shr 16
+			
+			If red>Rand(100,260) Then
+				Select Rand(0,7)
+					Case 0,1,2,3,4,5,6 ;create a tree
+						Local detail_entity%=CopyEntity(treeMesh)
+						;EntityType detail_entity,HIT_MAP
+						Local tempf2#=Rnd(0.25,0.4)
+						
+						For i = 0 To 3
+							Local d=CopyEntity(leafMesh)
+							;ScaleEntity d,tempf2*1.1,tempf2,tempf2*1.1,True
+							RotateEntity d, 0, 90*i+Rnd(-20,20), 0
+							EntityParent(d,detail_entity)
+							
+							EntityFX d, 1;+8
+						Next
+						
+						ScaleEntity detail_entity,tempf2*1.1,tempf2,tempf2*1.1,True
+						PositionEntity detail_entity,lx*tempf4-(tempf3/2.0),red*0.03-Rnd(3.0,3.2),ly*tempf4-(tempf3/2.0),True
+						
+						RotateEntity detail_entity,Rnd(-5,5),Rnd(360.0),0.0,True
+						
+						;EntityAutoFade(detail_entity,4.0,6.0)
+					Case 7 ;add a rock
+						detail_entity=CopyEntity(rockMesh)
+						;EntityType detail_entity,HIT_MAP
+						tempf2=Rnd(0.01,0.012)
+						;ScaleEntity detail_entity,tempf2,tempf2*Rnd(1.0,2.0),tempf2,True
+						
+						PositionEntity detail_entity,lx*tempf4-(tempf3/2.0),red*0.03-1.3,ly*tempf4-(tempf3/2.0),True
+						
+						EntityFX detail_entity, 1
+						
+						RotateEntity detail_entity,0.0,Rnd(360.0),0.0,True
+				End Select
+				
+				EntityFX detail_entity, 1
+				;PositionEntity detail_entity,Rnd(0.0,tempf3)-(tempf3/2.0),red*0.03-0.05,Rnd(0.0,tempf3)-(tempf3/2.0),True
+				EntityParent detail_entity,parent
+			EndIf
+		Next
+	Next
+	UnlockBuffer(buf)
 End Function
 
 Function DestroyForest(fr.Forest, nullgrid%=True)
@@ -2778,6 +2725,18 @@ Function FillRoom(r.Rooms)
 			
 			it = CreateItem("snav300", r\x - 312.0 * RoomScale, r\y + 264.0 * RoomScale, r\z + 176.0 * RoomScale)
 			it\state = 20 : EntityParent(it\collider, r\obj)
+
+			Local found% = False
+			For r2.Rooms = Each Rooms
+				If r2\RoomTemplate\Name = "room4info" Then
+					found = True
+					Exit
+				EndIf
+			Next
+			If Not found Then
+				it = CreateItem("scp330", r\x - 3.6, r\y + 0.5, r\z + 0.6)
+				EntityParent(it\collider, r\obj)
+			EndIf
 			;[End Block]
 		Case "room3tunnel"
 			;[Block]
@@ -7885,7 +7844,7 @@ Function load_terrain(hmap,yscale#=0.7,t1%,t2%,mask%)
 	If mask = 0 Then RuntimeErrorExt "load_terrain error: invalid texture mask"
 	
 	; fuck
-	Local maskZoom# = 2.0
+	Local maskZoom# = 1.0
 	
 	; offset to keep centered
 	Local maskW = TextureWidth(mask)

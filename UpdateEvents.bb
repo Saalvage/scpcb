@@ -8383,7 +8383,7 @@ Function UpdateEvents()
 							If EntityExist(e\room\Objects[i]) Then HideEntity e\room\Objects[i]
 						Next
 					EndIf
-					If EntityY(Collider)>EntityY(e\room\obj)-0.5
+					If EntityY(Collider)>EntityY(e\room\obj)-0.5 And EntityY(Collider)<EntityY(e\room\obj)+100
 						PlayerRoom = e\room
 					EndIf
 				EndIf
@@ -8499,6 +8499,68 @@ Function UpdateEvents()
 							MouseHit1=0
 						EndIf
 					Next
+				EndIf
+				;[End Block]
+			Case "halloweenfields"
+				;[Block]
+				If PlayerRoom=e\room Then
+					If e\room\Objects[0]=0 Then
+						DrawLoading(0, True)
+						
+						Local hmap% = LoadImage_Strict("GFX\map\halloween\fields.png")
+						Local hmask% = LoadTexture_Strict("GFX\map\halloween\fields_mask.png", 1+2+256)
+
+						DrawLoading(6, True)
+
+						Local GroundTexture = LoadTexture_Strict("GFX\map\forest\forestfloor.jpg")
+						Local PathTexture = LoadTexture_Strict("GFX\map\forest\forestpath.jpg")
+						
+						DrawLoading(12, True)
+
+						Local terr% = load_terrain(hmap, 0.03, PathTexture, GroundTexture, hmask)
+
+						DrawLoading(66, True)
+
+						Local pumpkin% = LoadMesh_Strict("GFX\items\halloween\pumpkin.b3d")
+						ScaleEntity(pumpkin, 0.2, 0.2, 0.2)
+
+						fr.Forest = First Forest
+						Local tree%, leaves%
+						If fr <> Null Then
+							tree = fr\DetailMesh[0]
+							leaves = fr\DetailMesh[2]
+						Else
+							tree = LoadMesh_Strict("GFX\map\forest\detail\treetest4.b3d")
+							leaves = LoadMesh_Strict("GFX\map\forest\detail\treetest5.b3d")
+						EndIf
+						DrawLoading(70, True)
+						PlaceForestProps(terr, hmap, MeshWidth(terr), tree, leaves, pumpkin)
+						DrawLoading(98, True)
+						If fr = Null Then
+							FreeEntity(tree)
+							FreeEntity(leaves)
+						EndIf
+
+						FreeTexture(GroundTexture)
+						FreeTexture(PathTexture)
+						FreeTexture(hmask)
+						FreeImage(hmap)
+
+						Local size# = 4 * 12.0 / MeshWidth(terr) / RoomScale
+						ScaleEntity(terr, size, size, size)
+						EntityType terr,HIT_MAP
+						EntityFX terr,1
+						EntityPickMode terr,2
+
+						EntityParent(terr, e\room\obj, False)
+						e\room\Objects[0] = terr
+					EndIf
+
+					CurrStepSFX = 2
+					CameraRange Camera,RoomScale,16.5
+					CameraFogRange Camera,0.5,16
+					CameraClsColor Camera,191, 133, 67
+					CameraFogColor Camera,191, 133, 67
 				EndIf
 				;[End Block]
 		End Select
