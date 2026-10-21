@@ -8507,8 +8507,8 @@ Function UpdateEvents()
 					If e\room\Objects[0]=0 Then
 						DrawLoading(0, True)
 						
-						Local hmap% = LoadImage_Strict("GFX\map\halloween\fields.png")
-						Local hmask% = LoadTexture_Strict("GFX\map\halloween\fields_mask.png", 1+2+256)
+						Local hmap% = LoadTexture_Strict("GFX\map\halloween\fields.png", hmapFlags)
+						Local mask% = LoadTexture_Strict("GFX\map\halloween\fields_mask.png", maskFlags)
 
 						DrawLoading(6, True)
 
@@ -8517,7 +8517,7 @@ Function UpdateEvents()
 						
 						DrawLoading(12, True)
 
-						Local terr% = load_terrain(hmap, 0.03, PathTexture, GroundTexture, hmask)
+						Local terr% = load_terrain(hmap, 0.03, PathTexture, GroundTexture, mask)
 
 						DrawLoading(66, True)
 
