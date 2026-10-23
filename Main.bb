@@ -3246,7 +3246,7 @@ While IsRunning
 		
 		If FPSfactor > 0 And PlayerRoom\RoomTemplate\Name <> "dimension1499" Then UpdateSecurityCams()
 		
-		If PlayerRoom\RoomTemplate\Name <> "pocketdimension" And PlayerRoom\RoomTemplate\Name <> "gatea" And PlayerRoom\RoomTemplate\Name <> "exit1" And (Not IsAnyMenuOpen()) Then 
+		If PlayerRoom\RoomTemplate\Name <> "pocketdimension" And PlayerRoom\RoomTemplate\Name <> "gatea" And PlayerRoom\RoomTemplate\Name <> "exit1" And PlayerRoom\RoomTemplate\Name <> "halloweenfields" And (Not IsAnyMenuOpen()) Then 
 			
 			If Rand(1500/FPSfactor) = 1 Then
 				For i = 0 To 5
@@ -3292,7 +3292,7 @@ While IsRunning
 			
 			If Rand(50000/FPSfactor) = 1 Then
 				Local RN$ = PlayerRoom\RoomTemplate\Name$
-				If RN$ <> "room860" And RN$ <> "room1123" And RN$ <> "173" And RN$ <> "dimension1499" Then
+				If RN$ <> "room860" And RN$ <> "room1123" And RN$ <> "173" And RN$ <> "dimension1499" And RN$ <> "halloweenfields" Then
 					If FPSfactor > 0 Then LightBlink = Rnd(1.0,2.0)
 					PlaySound_Strict  LoadTempSound("SFX\SCP\079\Broadcast"+Rand(1,7)+".ogg")
 				EndIf 
@@ -4257,7 +4257,7 @@ Function DrawEnding()
 					Local roomamount = 0, roomsfound = 0
 					For r.Rooms = Each Rooms
 						Local RN$ = r\RoomTemplate\Name$
-						If RN$ <> "dimension1499" And RN$ <> "gatea" And RN$ <> "pocketdimension" Then 
+						If RN$ <> "dimension1499" And RN$ <> "gatea" And RN$ <> "pocketdimension" And RN$ <> "halloweenfields" Then 
 							roomamount = roomamount + 1
 							roomsfound = roomsfound + r\found
 						EndIf
@@ -4646,6 +4646,11 @@ Function MovePlayer()
 					tempchn% = PlaySound_Strict(Step2SFX(Rand(0, 2)))
 				ElseIf CurrStepSFX=2
 					tempchn% = PlaySound_Strict(Step2SFX(Rand(3,5)))
+					If Sprint = 1.0 Then
+						PlayerSoundVolume = Max(2.5-(Crouch*0.6),PlayerSoundVolume)
+					Else
+						PlayerSoundVolume = Max(4.0,PlayerSoundVolume)
+					End If
 				ElseIf CurrStepSFX=3
 					If Sprint = 1.0 Then
 						PlayerSoundVolume = Max(2.5-(Crouch*0.6),PlayerSoundVolume)
@@ -7483,19 +7488,24 @@ Function DrawGUI()
 						RemoveItem(SelectedItem)
 						SelectedItem = Null
 
-						Local found% = False
 						For e.Events = Each Events
 							If e\EventName = "halloweenfields" Then
 								Teleport(e\room)
-								found = True
+								r = e\room
 								Exit
 							EndIf
 						Next
 
-						If Not found Then
-							Teleport(CreateRoom(0, ROOM1, 32, 1000, 0, 0, "halloweenfields"))
+						If r = Null Then
+							r = CreateRoom(0, ROOM1, 32, 1000, 32, 0, "halloweenfields")
+							Teleport(r)
 							CreateEvent("halloweenfields","halloweenfields",0)
 						EndIf
+
+						it = CreateItem("pumpkin", r\x - 14.7, r\y + 0.5, r\z + 5.0)
+						it\State2 = 1
+						RotateEntity(it\collider, 0, r\angle+130, 0)
+						EntityParent(it\collider, r\obj)
 
 						BlinkTimer = -10
 					EndIf
@@ -7506,6 +7516,28 @@ Function DrawGUI()
 						If WearingPumpkin Then
 							Msg = "You took off the pumpkin mask."
 						Else
+							If SelectedItem\State2 Then
+								SelectedItem\State2 = 0
+								If PlayerRoom\RoomTemplate\Name = "halloweenfields" Then
+									found% = False
+									For r.Rooms = Each Rooms
+										If r\RoomTemplate\Name = "room4info" Then
+											Teleport(r)
+											found = True
+											Exit
+										EndIf
+									Next
+									If Not found Then
+										For r.Rooms = Each Rooms
+											If r\RoomTemplate\Name = "room2testroom2" Then
+												Teleport(r)
+												Exit
+											EndIf
+										Next
+									EndIf
+									PlaySound_Strict(HorrorSFX(11))
+								EndIf
+							EndIf
 							Msg = "You put on the pumpkin mask and feel invisible."
 							If WearingNightVision Then CameraFogFar = StoredCameraFogFar
 							WearingNightVision = 0
