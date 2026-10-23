@@ -477,6 +477,9 @@ Function CreateNPC.NPCs(NPCtype%, x#, y#, z#)
 			n\Speed = (GetModdedINIFloat("DATA\NPCs.ini", "SCP-939", "speed") / 100.0)
 			
 			n\CollRadius = 0.3
+
+			; Waypoint count			
+			n\LastDist = 4
 			;[End Block]
 		Case NPCtype066
 			;[Block]
@@ -3651,7 +3654,7 @@ Function UpdateNPCs()
 			Case NPCtype939
 				;[Block]
 				
-				If PlayerRoom\RoomTemplate\Name <> "room3storage"
+				If PlayerRoom\RoomTemplate\Name <> "room3storage" And PlayerRoom\RoomTemplate\Name <> "halloweenfields"
 					n\State = 66
 				EndIf
 				
@@ -3686,7 +3689,7 @@ Function UpdateNPCs()
 							MoveEntity n\Collider, 0,0,n\CurrSpeed*FPSfactor						
 							
 						Case 2
-							n\State2 = Max(n\State2, (n\PrevState-3))
+							n\State2 = Max(n\State2, (n\PrevState-(n\LastDist-1)))
 							
 							dist = EntityDistance(n\Collider, PlayerRoom\Objects[n\State2])
 							
@@ -3721,7 +3724,7 @@ Function UpdateNPCs()
 							
 							If dist<0.4 Then
 								n\State2 = n\State2 + 1
-								If n\State2 > n\PrevState Then n\State2 = (n\PrevState-3)
+								If n\State2 > n\PrevState Then n\State2 = (n\PrevState-(n\LastDist-1))
 								n\State = 1
 							EndIf
 							
@@ -4069,6 +4072,7 @@ Function UpdateNPCs()
 						n\State = 66
 					Else If n\State = 66 Then
 						n\State = 0
+						n\State2 = 0
 					EndIf
 				EndIf
 				
@@ -7487,7 +7491,7 @@ Function PlayerInReachableRoom(canSpawnIn049Chamber%=False)
 	Local e.Events, temp
 	
 	;Player is in these rooms, returning false
-	If RN = "pocketdimension" Or RN = "gatea" Or RN = "dimension1499" Or RN = "173" Then
+	If RN = "pocketdimension" Or RN = "gatea" Or RN = "dimension1499" Or RN = "173" Or RN = "halloweenfields" Then
 		Return False
 	EndIf
 	;Player is at GateB and is at the surface, returning false

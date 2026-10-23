@@ -854,7 +854,6 @@ Function LoadGame(file$)
 			EndIf
 		ElseIf r\fr<>Null Then ;remove the old forest
 			DestroyForest(r\fr)
-			Delete r\fr
 		EndIf
 		
 	Next
@@ -1685,7 +1684,6 @@ Function LoadGameQuick(file$)
 			Local lz# = ReadFloat(f)
 		ElseIf r\fr<>Null Then ;remove the old forest
 			DestroyForest(r\fr)
-			Delete r\fr
 		EndIf
 		
 		If temp2 = 1 Then PlayerRoom = r.Rooms

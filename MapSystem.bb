@@ -1006,8 +1006,6 @@ Function PlaceForest(fr.Forest,x#,y#,z#,r.Rooms)
 	Local tempf1#,tempf2#,tempf3#,tempf4#
 	Local i%
 	
-	DestroyForest(fr,False)
-	
 	fr\Forest_Pivot=CreatePivot()
 	PositionEntity fr\Forest_Pivot,x,y,z,True
 	
@@ -1120,7 +1118,7 @@ Function PlaceForest(fr.Forest,x#,y#,z#,r.Rooms)
 				End Select
 				
 				If tile_type > 0 Then 
-					PlaceForestProps(tile_entity, hmap[tile_type], tempf3, fr\DetailMesh[0], fr\DetailMesh[2], fr\DetailMesh[1])
+					PlaceForestProps(tile_entity, hmap[tile_type], tempf3, 0.03, fr\DetailMesh[0], fr\DetailMesh[2], fr\DetailMesh[1])
 					
 					ScaleEntity tile_entity,tempf1,tempf1,tempf1
 					
@@ -1219,8 +1217,6 @@ Function PlaceForest_MapCreator(fr.Forest,x#,y#,z#,r.Rooms)
 	Local tempf1#,tempf2#,tempf3#,tempf4#
 	Local i%
 	
-	DestroyForest(fr,False)
-	
 	fr\Forest_Pivot=CreatePivot()
 	PositionEntity fr\Forest_Pivot,x,y,z,True
 	
@@ -1285,7 +1281,7 @@ Function PlaceForest_MapCreator(fr.Forest,x#,y#,z#,r.Rooms)
 				DebugLog "Tile: "+tile_type+"| Angle: "+angle
 				
 				If tile_type > 0 Then 
-					PlaceForestProps(tile_entity, hmap[tile_type], tempf3, fr\DetailMesh[0], fr\DetailMesh[2], fr\DetailMesh[1])
+					PlaceForestProps(tile_entity, hmap[tile_type], tempf3, 0.03, fr\DetailMesh[0], fr\DetailMesh[2], fr\DetailMesh[1])
 					
 					ScaleEntity tile_entity,tempf1,tempf1,tempf1
 					
@@ -1369,7 +1365,7 @@ Function PlaceForest_MapCreator(fr.Forest,x#,y#,z#,r.Rooms)
 	CatchErrors("PlaceForest_MapCreator")
 End Function
 
-Function PlaceForestProps(parent%, hmap%, tempf3#, treeMesh%, leafMesh%, rockMesh%)
+Function PlaceForestProps(parent%, hmap%, tempf3#, yscale#, treeMesh%, leafMesh%, rockMesh%, minHeight%=100, maxHeight%=260, maxHeightCap%=255)
 	;place trees and other details
 	;only placed on spots where the value of the heightmap is above 100
 	Local width = TextureWidth(hmap)
@@ -1380,7 +1376,7 @@ Function PlaceForestProps(parent%, hmap%, tempf3#, treeMesh%, leafMesh%, rockMes
 		For ly = 3 To width-2
 			Local red% = (ReadPixelFast(lx,width-ly,buf) And $FF0000) Shr 16
 			
-			If red>Rand(100,260) Then
+			If Min(red, maxHeightCap) > Rand(minHeight, maxHeight) Then
 				Select Rand(0,7)
 					Case 0,1,2,3,4,5,6 ;create a tree
 						Local detail_entity%=CopyEntity(treeMesh)
@@ -1397,7 +1393,7 @@ Function PlaceForestProps(parent%, hmap%, tempf3#, treeMesh%, leafMesh%, rockMes
 						Next
 						
 						ScaleEntity detail_entity,tempf2*1.1,tempf2,tempf2*1.1,True
-						PositionEntity detail_entity,lx*tempf4-(tempf3/2.0),red*0.03-Rnd(3.0,3.2),ly*tempf4-(tempf3/2.0),True
+						PositionEntity detail_entity,lx*tempf4-(tempf3/2.0),red*yscale-Rnd(3.0,3.2),ly*tempf4-(tempf3/2.0),True
 						
 						RotateEntity detail_entity,Rnd(-5,5),Rnd(360.0),0.0,True
 						
@@ -1408,7 +1404,7 @@ Function PlaceForestProps(parent%, hmap%, tempf3#, treeMesh%, leafMesh%, rockMes
 						tempf2=Rnd(0.01,0.012)
 						;ScaleEntity detail_entity,tempf2,tempf2*Rnd(1.0,2.0),tempf2,True
 						
-						PositionEntity detail_entity,lx*tempf4-(tempf3/2.0),red*0.03-1.3,ly*tempf4-(tempf3/2.0),True
+						PositionEntity detail_entity,lx*tempf4-(tempf3/2.0),red*yscale-1.3,ly*tempf4-(tempf3/2.0),True
 						
 						EntityFX detail_entity, 1
 						
@@ -1416,7 +1412,7 @@ Function PlaceForestProps(parent%, hmap%, tempf3#, treeMesh%, leafMesh%, rockMes
 				End Select
 				
 				EntityFX detail_entity, 1
-				;PositionEntity detail_entity,Rnd(0.0,tempf3)-(tempf3/2.0),red*0.03-0.05,Rnd(0.0,tempf3)-(tempf3/2.0),True
+				;PositionEntity detail_entity,Rnd(0.0,tempf3)-(tempf3/2.0),red*yscale-0.05,Rnd(0.0,tempf3)-(tempf3/2.0),True
 				EntityParent detail_entity,parent
 			EndIf
 		Next
@@ -1447,8 +1443,8 @@ Function DestroyForest(fr.Forest, nullgrid%=True)
 		If fr\DetailMesh[i]<>0 Then FreeEntity fr\DetailMesh[i] : fr\DetailMesh[i]=0
 	Next
 	
+	Delete fr
 	CatchErrors("DestroyForest")
-	;Delete fr
 End Function
 
 
@@ -2152,7 +2148,8 @@ Function FillRoom(r.Rooms)
 			
 			;the forest
 			If I_Zone\HasCustomForest = False Then
-				Local fr.Forest = New Forest
+				Local fr.Forest = First Forest
+				If fr = Null Then fr = New Forest
 				r\fr=fr
 				GenForestGrid(fr)
 				PlaceForest(fr,r\x,r\y+30.0,r\z,r)
@@ -5501,6 +5498,63 @@ Function FillRoom(r.Rooms)
 		Case "room4info"
 			it = CreateItem("scp330", r\x + 1.2, r\y + 0.56, r\z - 2.8)
 			EntityParent(it\collider, r\obj)
+		Case "halloweenfields"
+			Local hmap% = LoadTexture_Strict("GFX\map\halloween\fields.png", hmapFlags)
+			Local mask% = LoadTexture_Strict("GFX\map\halloween\fields_mask.png", maskFlags)
+
+			Local GroundTexture = LoadTexture_Strict("GFX\map\forest\forestfloor.jpg")
+			Local PathTexture = LoadTexture_Strict("GFX\map\forest\forestpath.jpg")
+			
+			Local terr% = load_terrain(hmap, 0.05, GroundTexture, PathTexture, mask, 1, 16)
+
+			Local pumpkin% = LoadMesh_Strict("GFX\items\halloween\pumpkin.b3d")
+			EntityEffect(pumpkin, InstanceEffect)
+
+			fr.Forest = First Forest
+			Local tree%, leaves%
+			If fr <> Null Then
+				tree = fr\DetailMesh[0]
+				leaves = fr\DetailMesh[2]
+			Else
+				tree = LoadMesh_Strict("GFX\map\forest\detail\treetest4.b3d")
+				leaves = LoadMesh_Strict("GFX\map\forest\detail\treetest5.b3d")
+			EndIf
+			PlaceForestProps(terr, hmap, MeshWidth(terr), 0.05, tree, leaves, pumpkin, 100, 800, 186)
+			If fr = Null Then
+				FreeEntity(tree)
+				FreeEntity(leaves)
+			EndIf
+
+			FreeTexture(GroundTexture)
+			FreeTexture(PathTexture)
+			FreeTexture(mask)
+			FreeTexture(hmap)
+
+			Local size# = 4 * 12.0 / MeshWidth(terr) / RoomScale
+			ScaleEntity(terr, size, size, size)
+			EntityType terr,HIT_MAP
+			EntityFX terr,1
+			EntityPickMode terr,2
+
+			EntityParent(terr, r\obj, False)
+			r\Objects[0] = terr
+
+			r\Objects[10] = CreatePivot(r\obj)
+			PositionEntity(r\Objects[10], 0.8 / RoomScale, 0.5 / RoomScale, 6 / RoomScale)
+			r\Objects[11] = CreatePivot(r\obj)
+			PositionEntity(r\Objects[11], 7 / RoomScale, 0.5 / RoomScale, -2.5 / RoomScale)
+			r\Objects[12] = CreatePivot(r\obj)
+			PositionEntity(r\Objects[12], 5.5 / RoomScale, 0.5 / RoomScale, -14 / RoomScale)
+			r\Objects[13] = CreatePivot(r\obj)
+			PositionEntity(r\Objects[13], -5 / RoomScale, 0.5 / RoomScale, -16 / RoomScale)
+			r\Objects[14] = CreatePivot(r\obj)
+			PositionEntity(r\Objects[14], -12 / RoomScale, 0.5 / RoomScale, -13 / RoomScale)
+			r\Objects[15] = CreatePivot(r\obj)
+			PositionEntity(r\Objects[15], -15 / RoomScale, 0.5 / RoomScale, -2 / RoomScale)
+			r\Objects[16] = CreatePivot(r\obj)
+			PositionEntity(r\Objects[16], -11 / RoomScale, 0.5 / RoomScale, 5 / RoomScale)
+			r\Objects[17] = CreatePivot(r\obj)
+			PositionEntity(r\Objects[17], -5 / RoomScale, 0.5 / RoomScale, 6.5 / RoomScale)
 	End Select
 	
 	For lt.lighttemplates = Each LightTemplates
@@ -7827,7 +7881,7 @@ End Function
 ;-------------------------------------------------------------------------------------------------------
 
 
-Function load_terrain(hmap,yscale#=0.7,t1%,t2%,mask%)
+Function load_terrain(hmap,yscale#=0.7,t1%,t2%,mask%,mask_off%=5,texture_scale#=4.0)
 	
 	DebugLog "load_terrain: "+hmap
 	
@@ -7854,8 +7908,8 @@ Function load_terrain(hmap,yscale#=0.7,t1%,t2%,mask%)
 	
 	TextureCoords t1, 0
 	TextureCoords t2, 0
-	ScaleTexture t1, x/4.0, y/4.0
-	ScaleTexture t2, x/4.0, y/4.0
+	ScaleTexture t1, x/texture_scale, y/texture_scale
+	ScaleTexture t2, x/texture_scale, y/texture_scale
 	
 	; start building the terrain
 	Local mesh = CreateMesh()
@@ -7904,10 +7958,10 @@ Function load_terrain(hmap,yscale#=0.7,t1%,t2%,mask%)
 			Local RGB1 = ReadPixelFast(Min(lx, x-1), y - Min(ly, y-1), HeightMapBuffer)
 			Local r = (RGB1 And $FF0000) Shr 16
 			
-			Local alpha# = ((ReadPixelFast(Clamp(maskX-5,0,maskW-1), Clamp(maskY-5,0,maskH-1), MaskBuffer) And $FF000000) Shr 24) / 255.0
-			alpha = alpha + ((ReadPixelFast(Clamp(maskX+5,0,maskW-1), Clamp(maskY+5,0,maskH-1), MaskBuffer) And $FF000000) Shr 24) / 255.0
-			alpha = alpha + ((ReadPixelFast(Clamp(maskX-5,0,maskW-1), Clamp(maskY+5,0,maskH-1), MaskBuffer) And $FF000000) Shr 24) / 255.0
-			alpha = alpha + ((ReadPixelFast(Clamp(maskX+5,0,maskW-1), Clamp(maskY-5,0,maskH-1), MaskBuffer) And $FF000000) Shr 24) / 255.0
+			Local alpha# = ((ReadPixelFast(Clamp(maskX-mask_off,0,maskW-1), Clamp(maskY-mask_off,0,maskH-1), MaskBuffer) And $FF000000) Shr 24) / 255.0
+			alpha = alpha + ((ReadPixelFast(Clamp(maskX+mask_off,0,maskW-1), Clamp(maskY+mask_off,0,maskH-1), MaskBuffer) And $FF000000) Shr 24) / 255.0
+			alpha = alpha + ((ReadPixelFast(Clamp(maskX-mask_off,0,maskW-1), Clamp(maskY+mask_off,0,maskH-1), MaskBuffer) And $FF000000) Shr 24) / 255.0
+			alpha = alpha + ((ReadPixelFast(Clamp(maskX+mask_off,0,maskW-1), Clamp(maskY-mask_off,0,maskH-1), MaskBuffer) And $FF000000) Shr 24) / 255.0
 			alpha = alpha * 0.25
 			alpha = Sqr(alpha)
 			If alpha > 1.0 Then alpha = 1.0
