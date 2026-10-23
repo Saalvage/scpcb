@@ -7445,34 +7445,31 @@ Function DrawGUI()
 					If CanUseItem(False, False, True)
 						If SteamActive Then Steam_SetStatInt("candies_eaten", Steam_GetStatInt("candies_eaten") + 1)
 
-						Msg = "You swallowed the candy. It tastes sour and gooey. You feel a presence emerging nearby."
+						Msg = "You swallowed the candy. It tastes sour and electrifying. You feel a presence nearby."
 						MsgTimer = 70*7
 
 						RemoveItem(SelectedItem)
 						SelectedItem = Null
-
-						; Select a room that is exactly two rooms away from the player.
-						Local startRoom.Rooms = PlayerRoom
-						Local selectedRoom.Rooms
-						For i = 0 To 1
-							Local rndIdx% = Rand(0, 3)
-							For j = 0 To 3
-								selectedRoom = startRoom\Adjacent[(rndIdx + j) Mod 4]
-								If selectedRoom <> Null And selectedRoom <> PlayerRoom
-									Exit
-								EndIf
-							Next
-							startRoom = selectedRoom
-						Next
 						
+						Local closestWaypoint.WayPoints
+						Local minDist# = INFINITY
+						Local collX# = EntityX(Collider), collY# = EntityY(Collider), collZ# = EntityZ(Collider)
 						For w.WayPoints = Each WayPoints
-							If w\Room = selectedRoom Then
- 								Local jello.NPCs = CreateNPC(NPCtype066, EntityX(w\obj, True), EntityY(w\obj, True) + 0.1, EntityZ(w\obj, True))
-								CreateItem("infbat", EntityX(jello\Collider, True), EntityY(jello\Collider, True), EntityZ(jello\Collider, True))
-								ChangeNPCTextureID(jello, 0)
-								Exit
+							dist# = (EntityX(w\obj, True) - collX)^2 + (EntityY(w\obj, True) - collY)^2 + (EntityZ(w\obj, True) - collZ)^2
+							If dist < minDist And dist > 0.4 Then
+								closestWaypoint = w
+								minDist = dist
 							EndIf
+								
 						Next
+						Local jello.NPCs = CreateNPC(NPCtype066, EntityX(closestWaypoint\obj, True), EntityY(closestWaypoint\obj, True) + 0.1, EntityZ(closestWaypoint\obj, True))
+						jello\State = 2
+						CreateItem("infbat", EntityX(jello\Collider, True), EntityY(jello\Collider, True), EntityZ(jello\Collider, True))
+						ChangeNPCTextureID(jello, 0)
+
+						PlaySound_Strict(LoadTempSound("SFX\Room\Tesla\Shock.ogg"))
+						LightFlash = 0.5
+						LightVolume = -1.25
 					EndIf
 					;[End Block]
 				Case "lollipop"

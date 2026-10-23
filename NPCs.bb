@@ -4069,6 +4069,7 @@ Function UpdateNPCs()
 						n\State = 66
 					Else If n\State = 66 Then
 						n\State = 0
+						n\State2 = 0
 					EndIf
 				EndIf
 				
