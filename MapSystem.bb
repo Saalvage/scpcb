@@ -1006,8 +1006,6 @@ Function PlaceForest(fr.Forest,x#,y#,z#,r.Rooms)
 	Local tempf1#,tempf2#,tempf3#,tempf4#
 	Local i%
 	
-	DestroyForest(fr,False)
-	
 	fr\Forest_Pivot=CreatePivot()
 	PositionEntity fr\Forest_Pivot,x,y,z,True
 	
@@ -1215,8 +1213,6 @@ Function PlaceForest_MapCreator(fr.Forest,x#,y#,z#,r.Rooms)
 	
 	Local tempf1#,tempf2#,tempf3#,tempf4#
 	Local i%
-	
-	DestroyForest(fr,False)
 	
 	fr\Forest_Pivot=CreatePivot()
 	PositionEntity fr\Forest_Pivot,x,y,z,True
@@ -1444,8 +1440,8 @@ Function DestroyForest(fr.Forest, nullgrid%=True)
 		If fr\DetailMesh[i]<>0 Then FreeEntity fr\DetailMesh[i] : fr\DetailMesh[i]=0
 	Next
 	
+	Delete fr
 	CatchErrors("DestroyForest")
-	;Delete fr
 End Function
 
 
@@ -2149,7 +2145,8 @@ Function FillRoom(r.Rooms)
 			
 			;the forest
 			If I_Zone\HasCustomForest = False Then
-				Local fr.Forest = New Forest
+				Local fr.Forest = First Forest
+				If fr = Null Then fr = New Forest
 				r\fr=fr
 				GenForestGrid(fr)
 				PlaceForest(fr,r\x,r\y+30.0,r\z,r)
