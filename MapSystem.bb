@@ -1043,9 +1043,10 @@ Function PlaceForest(fr.Forest,x#,y#,z#,r.Rooms)
 	For i%=ROOM1 To ROOM4
 		HideEntity fr\TileMesh[i]
 	Next
-	For i%=0 To 3
-		HideEntity fr\DetailMesh[i]
+	For i%=0 To 2
+		EntityEffect fr\DetailMesh[i], InstanceEffect
 	Next
+	HideEntity fr\DetailMesh[3]
 	
 	tempf3=MeshWidth(fr\TileMesh[ROOM1])
 	tempf1=tile_size/tempf3
@@ -1254,9 +1255,10 @@ Function PlaceForest_MapCreator(fr.Forest,x#,y#,z#,r.Rooms)
 	For i%=ROOM1 To ROOM4
 		HideEntity fr\TileMesh[i]
 	Next
-	For i%=0 To 3
-		HideEntity fr\DetailMesh[i]
+	For i%=0 To 2
+		EntityEffect fr\DetailMesh[i], InstanceEffect
 	Next
+	HideEntity fr\DetailMesh[3]
 	
 	tempf3=MeshWidth(fr\TileMesh[ROOM1])
 	tempf1=tile_size/tempf3
@@ -1379,17 +1381,18 @@ Function PlaceForestProps(parent%, hmap%, tempf3#, yscale#, treeMesh%, leafMesh%
 			If Min(red, maxHeightCap) > Rand(minHeight, maxHeight) Then
 				Select Rand(0,7)
 					Case 0,1,2,3,4,5,6 ;create a tree
-						Local detail_entity%=CopyEntity(treeMesh)
+						Local detail_entity%=CreateMesh()
+						EntityInstance(detail_entity, treeMesh)
 						;EntityType detail_entity,HIT_MAP
 						Local tempf2#=Rnd(0.25,0.4)
 						
 						For i = 0 To 3
-							Local d=CopyEntity(leafMesh)
+							Local d=CreateMesh()
+							EntityInstance(d, leafMesh)
 							;ScaleEntity d,tempf2*1.1,tempf2,tempf2*1.1,True
 							RotateEntity d, 0, 90*i+Rnd(-20,20), 0
 							EntityParent(d,detail_entity)
 							
-							EntityFX d, 1;+8
 						Next
 						
 						ScaleEntity detail_entity,tempf2*1.1,tempf2,tempf2*1.1,True
@@ -1399,19 +1402,18 @@ Function PlaceForestProps(parent%, hmap%, tempf3#, yscale#, treeMesh%, leafMesh%
 						
 						;EntityAutoFade(detail_entity,4.0,6.0)
 					Case 7 ;add a rock
-						detail_entity=CopyEntity(rockMesh)
+						detail_entity=CreateMesh()
+						EntityInstance(detail_entity, rockMesh)
 						;EntityType detail_entity,HIT_MAP
 						tempf2=Rnd(0.01,0.012)
 						;ScaleEntity detail_entity,tempf2,tempf2*Rnd(1.0,2.0),tempf2,True
 						
 						PositionEntity detail_entity,lx*tempf4-(tempf3/2.0),red*yscale-1.3,ly*tempf4-(tempf3/2.0),True
 						
-						EntityFX detail_entity, 1
 						
 						RotateEntity detail_entity,0.0,Rnd(360.0),0.0,True
 				End Select
 				
-				EntityFX detail_entity, 1
 				;PositionEntity detail_entity,Rnd(0.0,tempf3)-(tempf3/2.0),red*yscale-0.05,Rnd(0.0,tempf3)-(tempf3/2.0),True
 				EntityParent detail_entity,parent
 			EndIf
