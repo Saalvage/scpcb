@@ -4084,7 +4084,7 @@ Function UpdateNPCs()
 				
 				If n\State3 > 0 Then
 					n\State3 = n\State3-FPSfactor
-					LightVolume = TempLightVolume-TempLightVolume*Min(Max(n\State3/500,0.01),0.6)
+					LightVolume = Min(LightVolume, TempLightVolume-TempLightVolume*Min(Max(n\State3/500,0.01),0.6))
 					HeartBeatRate = Max(HeartBeatRate, 130)
 					HeartBeatVolume = Max(HeartBeatVolume,Min(n\State3/1000,1.0))
 				EndIf
