@@ -1065,10 +1065,12 @@ Function UpdateNPCs()
 									n\State=n\State-FPSfactor
 								End If
 								
-								If dist > 0.8 Lor PlayerRoom\RoomTemplate\Name = "gatea" Then
-									If (dist > 25.0 Or PlayerRoom\RoomTemplate\Name = "pocketdimension" Or Visible Or n\PathStatus <> 1) And PlayerRoom\RoomTemplate\Name <> "gatea" Then 
+								Local isAtGate% = PlayerRoom\RoomTemplate\Name = "gatea"
+								Local isInPd% = PlayerRoom\RoomTemplate\Name = "pocketdimension"
+								If dist > 0.8 Lor isAtGate Then
+									If (dist > 25.0 Or isInPd Or Visible Or n\PathStatus <> 1) And (Not isAtGate) And (Not NoTarget) Then 
 										
-										If (dist > 40 Or PlayerRoom\RoomTemplate\Name = "pocketdimension") Then
+										If (dist > 40 Or isInPd) Then
 											TranslateEntity n\Collider, 0, ((EntityY(Collider) - 0.14) - EntityY(n\Collider)) * FPSFactor / 50.0, 0
 										EndIf
 										
@@ -1096,7 +1098,10 @@ Function UpdateNPCs()
 											n\PathStatus = FindPath (n, EntityX(Collider,True), EntityY(Collider,True), EntityZ(Collider,True))
 											n\PathTimer = 70*10
 										EndIf
-									Else 
+									ElseIf NoTarget And (Not isAtGate)
+										AnimateNPC(n, 334, 494, 0.3)
+ 										n\CurrSpeed = CurveValue(0,n\CurrSpeed,10.0)
+									Else
 										If n\PathTimer <= 0 Then
 											n\PathStatus = FindPath (n, EntityX(Collider,True), EntityY(Collider,True), EntityZ(Collider,True))
 											n\PathTimer = 70*10
@@ -1724,8 +1729,9 @@ Function UpdateNPCs()
 							;[Block]
 							If (dist < HideDistance*2) And (Not n\Idle) And PlayerInReachableRoom(True) Then
 								n\SoundChn = LoopSound2(n\Sound, n\SoundChn, Camera, n\Collider)
-								PlayerSeeAble% = MeNPCSeesPlayer(n)
-								If PlayerSeeAble%=True Or n\State2>0 Then ;Player is visible for 049's sight - attacking
+								If MeNPCSeesPlayer(n) = True Then n\State2 = 70*2
+								If NoTarget Then n\State2 = 0
+								If n\State2>0 Then ;Player is visible for 049's sight - attacking
 									GiveAchievement(Achv049)
 									
 									;Playing a sound after detecting the player
@@ -1738,7 +1744,6 @@ Function UpdateNPCs()
 									n\PathStatus = 0
 									n\PathTimer# = 0.0
 									n\PathLocation = 0
-									If PlayerSeeAble%=True Then n\State2 = 70*2
 									
 									PointEntity n\obj,Collider
 									RotateEntity n\Collider,0,CurveAngle(EntityYaw(n\obj),EntityYaw(n\Collider),10.0),0
