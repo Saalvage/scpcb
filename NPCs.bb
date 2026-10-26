@@ -1023,7 +1023,7 @@ Function UpdateNPCs()
 								If n\Frame<259 Then
 									PositionEntity n\Collider, EntityX(n\Collider), n\PrevY-0.15, EntityZ(n\Collider)
 									PointEntity n\obj, Collider
-									RotateEntity (n\Collider, 0, CurveValue(EntityYaw(n\obj),EntityYaw(n\Collider),100.0), 0, True)
+									RotateEntity (n\Collider, 0, CurveAngle(EntityYaw(n\obj),EntityYaw(n\Collider),100.0), 0, True)
 									
 									AnimateNPC(n, 110, 259, 0.15, False)
 								Else
