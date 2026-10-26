@@ -10999,14 +10999,18 @@ Function Use914(item.Items, setting$, x#, y#, z#)
 						d.Decals = CreateDecal(22, x, 8*RoomScale+0.011, z, 90, Rand(360), 0)
 						d\Size = 0.2 : ScaleSprite(d\obj, d\Size, d\Size)
 					Case "1:1"
-						Select Rand(3)
-							Case 1
-								it2 = CreateItem("eyecandy", x, y, z)
-							Case 2
-								it2 = CreateItem("lollipop", x, y, z)
-							Case 3
-								it2 = CreateItem("candybar", x, y, z)
-						End Select
+						Local newCandy$
+						Repeat
+							Select Rand(3)
+								Case 1
+									newCandy = "eyecandy"
+								Case 2
+									newCandy = "lollipop"
+								Case 3
+									newCandy = "candybar"
+							End Select
+						Until newCandy <> item\itemtemplate\Name
+						CreateItem(newCandy, x, y, z)
 					Case "fine"
 						it2 = CreateItem("joint", x, y, z)
 					Case "very fine"
