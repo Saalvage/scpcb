@@ -575,12 +575,10 @@ Function ReadMesh%(file$, f%, blankTexture%, Alpha%, Opaque%, coll% = True)
 			Local temp1s$=ReadString(f)
 			tex[j]=GetTextureFromCache(temp1s)
 			If tex[j]=0 Then ;texture is not in cache
-				Select True
-					Case temp1i<3
-						tex[j]=LoadTexture(file+temp1s,1)
-					Default
-						tex[j]=LoadTexture(file+temp1s,3)
-				End Select
+				Local flags% = 1
+				If temp1i=>3 Then flags = 3
+				tex[j]=LoadTexture(file+temp1s,flags)
+				If tex[j] = 0 Then tex[j] = LoadTexture("GFX\map\" + temp1s,1)
 				
 				If tex[j]<>0 Then
 					If temp1i=1 Then TextureBlend tex[j],5
