@@ -958,8 +958,14 @@ Function UpdateNPCs()
 					HideEntity n\obj
 					HideEntity n\obj2
 					PositionEntity n\obj, 0,500.0,0, True
+				ElseIf n\State3 <> 0 And PlayerRoom\RoomTemplate\Name <> "gatea" Then
+					If n\Frame < 110 Lor n\Frame > 259 Then SetNPCFrame(n, 259)
+					AnimateNPC(n, 259, 110, -0.3, False)
+					If n\Frame = 110 Then
+						n\State3 = 0
+						n\State = Rand(22000, 27000)
+					EndIf
 				Else
-					
 					dist = EntityDistance(n\Collider, Collider)
 					
 					Local spawn106% = True

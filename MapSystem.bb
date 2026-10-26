@@ -5495,6 +5495,7 @@ Function FillRoom(r.Rooms)
 			;[End Block]
 		Case "room4info"
 			it = CreateItem("scp330", r\x + 1.2, r\y + 0.56, r\z - 2.8)
+			it\state2 = 1 Shl Rand(0, 2)
 			EntityParent(it\collider, r\obj)
 		Case "halloweenfields"
 			Local hmap% = LoadTexture_Strict("GFX\map\halloween\fields.png", hmapFlags)

@@ -417,10 +417,11 @@ Function UpdateItems()
 	Local pick%
 	
 	Local HideDist = HideDistance*0.5
-	Local deletedItem% = False
 	
 	ClosestItem = Null
 	For i.Items = Each Items
+		CatchErrors("Uncaught (UpdateItem "+i\itemtemplate\name+")")
+		
 		i\Dropped = 0
 		
 		If (Not i\Picked) Then
@@ -501,7 +502,7 @@ Function UpdateItems()
 					Next
 				EndIf
 				
-				If EntityY(i\collider) < - 35.0 Then DebugLog "remove: " + i\itemtemplate\name:RemoveItem(i):deletedItem=True
+				If EntityY(i\collider, True) < - 35.0 Then RemoveItem(i) : Continue
 			Else
 				HideEntity i\collider
 			EndIf
@@ -511,20 +512,120 @@ Function UpdateItems()
 			i\zspeed = 0.0
 		EndIf
 		
-		If Not deletedItem Then
-			CatchErrors(Chr(34)+i\itemtemplate\name+Chr(34)+" item")
-		EndIf
-		deletedItem = False
+		Select i\itemtemplate\name
+			Case "lollipop"
+				If i\state > 0 Then
+					i\state = i\state + FPSfactor
+
+					If Rand(50/FPSfactor) = 1
+						CameraShake = Max(CameraShake, Rnd(0.01 * i\state, 0.05 * i\state))
+						If (MilliSecs() Mod 1000) < 100 Then PlaySound_Strict(CoughSFX(Rand(0,2)))
+					EndIf
+
+					If i\state > 70 * 10 Then BlurTimer = Max(BlurTimer, 1400)
+
+					If i\state > 70 * 15 Then
+						Local r.Rooms = Null
+						For e.Events = Each Events
+							If e\EventName = "halloweenfields" Then
+								r = e\room
+								Teleport(r)
+								Exit
+							EndIf
+						Next
+
+						If r = Null Then
+							For r2.Rooms = Each Rooms
+								If r2\RoomTemplate\Name = "halloweenfields" Then
+									r = r2
+									Teleport(r)
+									CreateEvent("halloweenfields","halloweenfields",0)
+									Exit
+								EndIf
+							Next
+						EndIf
+
+						If r = Null Then
+							r = CreateRoom(0, ROOM1, 0, 1000, 128, 0, "halloweenfields")
+							Teleport(r)
+							CreateEvent("halloweenfields","halloweenfields",0)
+						EndIf
+						PositionEntity(Collider, r\x + 18, r\y + 0.5, r\z + 18)
+						ResetEntity(Collider)
+
+						Local it.Items = CreateItem("pumpkin", r\x - 14.7, r\y + 0.5, r\z + 5.0)
+						it\State2 = True
+						RotateEntity(it\collider, 0, r\angle+130, 0)
+						EntityParent(it\collider, r\obj)
+
+						LightVolume = -0.1
+
+						BlinkTimer = -10
+
+						BlurTimer = Max(BlurTimer, 5 * 70)
+						PlaySound_Strict(CoughSFX(Rand(0,2)))
+
+						RemoveItem(i)
+					EndIf
+				EndIf
+			Case "candybar"
+				If i\state > 0 Then
+					CurrStepSFX = 1
+					
+					If PlayerStepped Then
+						de.Decals = CreateDecal(0, EntityX(Collider),EntityY(Collider)-0.29,EntityZ(Collider), 90, Rand(360), 0)
+						de\Size = 0.2 : de\SizeChange = 0.004 : de\timer = 90000 : EntityAlpha(de\obj, 0.8) : UpdateDecals() 											
+					EndIf
+					i\state = i\state + FPSfactor
+					BlurVolume = 1 - 70 / (i\state * 3)
+
+					If Rand(25/FPSfactor) = 1 And (MilliSecs() Mod 1000) < 200
+						PlaySound_Strict(DecaySFX(Rand(3)))
+					EndIf
+
+					If i\state > 70 * 15 Then
+						r = Null
+						For e.Events = Each Events
+							If e\EventName = "halloweenpd" Then
+								r = e\room
+								Teleport(r)
+								Exit
+							EndIf
+						Next
+
+						If r = Null Then
+							For r2.Rooms = Each Rooms
+								If r2\RoomTemplate\Name = "halloweenpd" Then
+									r = r2
+									Teleport(r)
+									CreateEvent("halloweenpd","halloweenpd",0)
+									Exit
+								EndIf
+							Next
+						EndIf
+
+						If r = Null Then
+							r = CreateRoom(0, ROOM1, 32, 1500, 128, 0, "halloweenpd")
+							Teleport(r)
+							CreateEvent("halloweenpd","halloweenpd",0)
+						EndIf
+
+						LightVolume = -0.1
+						BlinkTimer = -10
+
+						RemoveItem(i)
+					EndIf
+				EndIf
+			Case "boneflute"
+				i\state = Max(0, i\state - FPSfactor)
+		End Select
 	Next
+
+	CatchErrors("Update items")
 
 	If LostHands Then ClosestItem = Null
 	
-	If ClosestItem <> Null Then
-		;DrawHandIcon = True
-		
-		If MouseHit1 Then PickItem(ClosestItem)
-	EndIf
-	
+	If ClosestItem <> Null And MouseHit1 Then PickItem(ClosestItem)
 End Function
 
 Function PickItem(item.Items)

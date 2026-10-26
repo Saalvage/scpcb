@@ -4550,10 +4550,12 @@ End Function
 ;--------------------------------------- player controls -------------------------------------------
 
 Global MoveX%, MoveZ%
+Global PlayerStepped%
 
 Function MovePlayer()
 	CatchErrors("Uncaught (MovePlayer)")
 	Local Sprint# = 1.0, Speed# = 0.018, i%, angle#
+	PlayerStepped = False
 	
 	If SuperMan Then
 		Speed = Speed * 3
@@ -4667,6 +4669,7 @@ Function MovePlayer()
 			Local tempchn%
 			If (Not UnableToMove%) Then Shake# = (Shake + FPSfactor * Min(Sprint, 1.5) * 7) Mod 720
 			If temp < 180 And (Shake Mod 360) >= 180 And KillTimer>=0 Then
+				PlayerStepped = True
 				If CurrStepSFX=0 Then
 					temp = GetStepSound(Collider)
 					
@@ -4972,7 +4975,7 @@ Function MouseLook(handleInput% = True)
 		
 		RotateEntity Camera, WrapAngle(user_camera_pitch + Rnd(-CameraShake*FPSfactor, CameraShake*FPSfactor)), WrapAngle(EntityYaw(Collider) + Rnd(-CameraShake*FPSfactor, CameraShake*FPSfactor)), roll ; Pitch the user;s camera up And down.
 		
-		If PlayerRoom\RoomTemplate\Name = "pocketdimension" Then
+		If PlayerRoom\RoomTemplate\Name = "pocketdimension" Lor PlayerRoom\RoomTemplate\Name = "halloweenpd" Then
 			If EntityY(Collider)<2000*RoomScale Or EntityY(Collider)>2608*RoomScale Then
 				RotateEntity Camera, WrapAngle(EntityPitch(Camera)),WrapAngle(EntityYaw(Camera)), roll+WrapAngle(Sin(MilliSecs()/150.0)*30.0) ; Pitch the user;s camera up And down.
 			EndIf
@@ -7483,7 +7486,7 @@ Function DrawGUI()
 						If SteamActive Then Steam_SetStatInt("candies_eaten", Steam_GetStatInt("candies_eaten") + 1)
 
 						Msg = "You swallowed the candy. It tastes sour and electrifying. You feel a presence nearby."
-						MsgTimer = 70*7
+						MsgTimer = 70*12
 
 						RemoveItem(SelectedItem)
 						SelectedItem = Null
@@ -7518,32 +7521,33 @@ Function DrawGUI()
 					If CanUseItem(False, False, True)
 						If SteamActive Then Steam_SetStatInt("candies_eaten", Steam_GetStatInt("candies_eaten") + 1)
 
-						Msg = "You ate the lollipop. It tastes of pumpkin pie. You find yourself in a strangely familiar place."
+						Msg = "You ate the lollipop. It tastes of pumpkin pie."
+						MsgTimer = 70*12
+
+						SelectedItem\state = True
+						DropItem(SelectedItem, False)
+						PositionEntity(SelectedItem\collider, 0, 0, 0)
+						ResetEntity(SelectedItem\collider)
+						SelectedItem = Null
+					EndIf
+					;[End Block]
+				Case "candybar"
+					;[Block]
+					If CanUseItem(False, False, True)
+						If SteamActive Then Steam_SetStatInt("candies_eaten", Steam_GetStatInt("candies_eaten") + 1)
+
+						Msg = "You ate the candy bar. It tastes of decay."
 						MsgTimer = 70*7
 
-						RemoveItem(SelectedItem)
+						SelectedItem\state = 69.9
+						DropItem(SelectedItem, False)
+						PositionEntity(SelectedItem\collider, 0, 0, 0)
+						ResetEntity(SelectedItem\collider)
 						SelectedItem = Null
 
-						For e.Events = Each Events
-							If e\EventName = "halloweenfields" Then
-								Teleport(e\room)
-								r = e\room
-								Exit
-							EndIf
-						Next
-
-						If r = Null Then
-							r = CreateRoom(0, ROOM1, 32, 1000, 32, 0, "halloweenfields")
-							Teleport(r)
-							CreateEvent("halloweenfields","halloweenfields",0)
-						EndIf
-
-						it = CreateItem("pumpkin", r\x - 14.7, r\y + 0.5, r\z + 5.0)
-						it\State2 = 1
-						RotateEntity(it\collider, 0, r\angle+130, 0)
-						EntityParent(it\collider, r\obj)
-
-						BlinkTimer = -10
+						de.Decals = CreateDecal(0, EntityX(Collider), EntityY(Collider)-0.29, EntityZ(Collider), 90, Rand(360), 0)
+						de\Size = 0.05 : de\SizeChange = 0.001 : EntityAlpha(de\obj, 0.8) : UpdateDecals
+						PlaySound_Strict(DecaySFX(0))
 					EndIf
 					;[End Block]
 				Case "pumpkin"
@@ -7555,23 +7559,7 @@ Function DrawGUI()
 							If SelectedItem\State2 Then
 								SelectedItem\State2 = 0
 								If PlayerRoom\RoomTemplate\Name = "halloweenfields" Then
-									found% = False
-									For r.Rooms = Each Rooms
-										If r\RoomTemplate\Name = "room4info" Then
-											Teleport(r)
-											found = True
-											Exit
-										EndIf
-									Next
-									If Not found Then
-										For r.Rooms = Each Rooms
-											If r\RoomTemplate\Name = "room2testroom2" Then
-												Teleport(r)
-												Exit
-											EndIf
-										Next
-									EndIf
-									PlaySound_Strict(HorrorSFX(11))
+									If TeleportFromHalloweenRoom() Then PlaySound_Strict(HorrorSFX(11))
 								EndIf
 							EndIf
 							Msg = "You put on the pumpkin mask and feel invisible."
@@ -7585,6 +7573,29 @@ Function DrawGUI()
 					EndIf
 					SelectedItem = Null
 					MsgTimer = 70 * 5
+					;[End Block]
+				Case "boneflute"
+					;[Block]
+					If PlayerRoom\RoomTemplate\Name = "pocketdimension" Lor PlayerRoom\RoomTemplate\Name = "halloweenpd" Then
+						PlaySound_Strict(OldManSFX(3))
+					Else
+						If Curr106\State <= 0 And PlayerRoom\RoomTemplate\Name <> "gatea" Then
+							If SelectedItem\state > 240*70 Then
+								PlaySound_Strict(OldManSFX(3))
+							Else
+								Curr106\State3 = True
+								; Fully emerged, spawn new decal
+								If Curr106\State <= - 10 Then
+									de.Decals = CreateDecal(0, EntityX(Curr106\Collider),0.01,EntityZ(Curr106\Collider), 90, Rand(360), 0)
+									de\Size = 0.2 : de\SizeChange = 0.004 : EntityAlpha(de\obj, 0.8) : UpdateDecals()
+								EndIf
+							EndIf
+						Else
+							Curr106\State = Min(Curr106\State, 70*3)
+							SelectedItem\state = SelectedItem\state + 120*70
+						EndIf
+					EndIf
+					SelectedItem = Null
 					;[End Block]
 				Default
 					If SelectedItem\itemtemplate\group = "paper" Lor SelectedItem\itemtemplate\name = "ticket" Then
@@ -7716,6 +7727,24 @@ Function DrawGUI()
 	DrawHUD()
 	
 	CatchErrors("DrawGUI")
+End Function
+
+Function TeleportFromHalloweenRoom%()
+	For r.Rooms = Each Rooms
+		If r\RoomTemplate\Name = "room4info" Then
+			Teleport(r)
+			Return True
+		EndIf
+	Next
+	If Not found Then
+		For r.Rooms = Each Rooms
+			If r\RoomTemplate\Name = "room2testroom2" Then
+				Teleport(r)
+				Return True
+			EndIf
+		Next
+	EndIf
+	Return False
 End Function
 
 Function DrawItemImg(i.Items)
