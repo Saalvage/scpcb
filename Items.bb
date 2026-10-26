@@ -575,11 +575,16 @@ Function PickItem(item.Items)
 						
 						Return
 					Case "killbat"
-						ShowEntity Light
-						LightFlash = 1.0
-						PlaySound_Strict(IntroSFX(11))
-						DeathMSG = I_Loc\DeathMessage_Killbat
-						Kill()
+						If item\state Then
+							Msg = "The goo allows you to pick up the battery safely." ; TODO: Needed?
+							MsgTimer = 70*7
+						Else
+							ShowEntity Light
+							LightFlash = 1.0
+							PlaySound_Strict(IntroSFX(11))
+							DeathMSG = I_Loc\DeathMessage_Killbat
+							Kill()
+						EndIf
 					Case "scp148"
 						GiveAchievement(Achv148)	
 					Case "scp513"

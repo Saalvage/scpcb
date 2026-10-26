@@ -6020,7 +6020,7 @@ Function DrawGUI()
 										MsgTimer = 70 * 5
 								End Select
 								;[End Block]
-							Case "infbat"
+							Case "killbat"
 								;[Block]
 								Select Inventory(MouseSlot)\itemtemplate\name
 									Case "snav", "snav300", "snav310"
@@ -7496,8 +7496,12 @@ Function DrawGUI()
 						Next
 						Local jello.NPCs = CreateNPC(NPCtype066, EntityX(closestWaypoint\obj, True), EntityY(closestWaypoint\obj, True) + 0.1, EntityZ(closestWaypoint\obj, True))
 						jello\State = 2
-						CreateItem("infbat", EntityX(jello\Collider, True), EntityY(jello\Collider, True), EntityZ(jello\Collider, True))
+						it = CreateItem("killbat", 0, 0, 0)
+						it\state = True
 						ChangeNPCTextureID(jello, 0)
+						EntityParent(it\collider, jello\ManipulationType)
+						PositionEntity(it\collider, 0, 0, 0)
+						ResetEntity(it\collider)
 
 						PlaySound_Strict(LoadTempSound("SFX\Room\Tesla\Shock.ogg"))
 						LightFlash = 0.5
@@ -10771,7 +10775,7 @@ Function Use914(item.Items, setting$, x#, y#, z#)
 			End Select
 			
 			RemoveItem(item)
-		Case "bat", "18vbat", "killbat", "infbat"
+		Case "bat", "18vbat", "killbat"
 			Select setting
 				Case "rough", "coarse"
 					d.Decals = CreateDecal(0, x, 8 * RoomScale + 0.010, z, 90, Rand(360), 0)

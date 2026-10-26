@@ -640,12 +640,13 @@ Function RemoveNPC(n.NPCs)
 	
 	If n=Null Then Return
 	
-	; This avoids freeing independent child entities.
-	; In practice this is an issue with Halloween SCP-066 and the batteries it holds.
-	Local childCount% = CountChildren(n\Collider)
-	For i = 1 To childCount
-		EntityParent(GetChild(n\Collider, i), 0)
-	Next
+	If n\NPCtype = NPCtype066 And n\TextureID = 1 Then
+		For it.Items = Each Items
+			If GetParent(it\collider) = n\ManipulationType Then
+				EntityParent(it\collider, 0)
+			EndIf
+		Next
+	EndIf
 
 	If n\obj2 <> 0 Then 
 		FreeEntity n\obj2
@@ -4020,7 +4021,14 @@ Function UpdateNPCs()
 							
 							;Animate2(n\obj, AnimTime(n\obj), 684, 647, -n\CurrSpeed*25)
 						EndIf
-						
+					Case 66
+						AnimateNPC(n, 685, 710, 0.4, False)
+					Case 67
+						AnimateNPC(n, 710, 685, -0.4, False)
+						If n\Frame = 685 Then 
+							n\State = 0
+							n\State2 = 0
+						EndIf
 				End Select
 				
 				If n\State > 1 Then
@@ -4056,23 +4064,37 @@ Function UpdateNPCs()
 				If n\TextureID = 1 Then
 					Local found% = False
 					For it.Items = Each Items
-						If it\itemtemplate\group = "battery" And  EntityDistance(it\collider, n\Collider) < 0.4
-							If Not it\Picked Then
-								EntityParent(it\collider, n\Collider)
-								PositionEntity(it\collider, CurveValue(0, EntityX(it\collider), 20), CurveValue(0, EntityY(it\collider), 20), CurveValue(0, EntityZ(it\collider), 20))
-								found = True
-							ElseIf GetParent(it\collider) = n\Collider Then
+						If it\itemtemplate\group = "battery" And GetParent(it\collider) = n\ManipulationType Then
+							If it\Picked Then
+								If it\itemtemplate\name = "killbat" Then it\state = False
 								EntityParent(it\collider, 0)
 								PositionEntity(it\collider, 0, 0, 0)
+							Else
+								PositionEntity(it\collider, CurveValue(0, EntityX(it\collider), 20), CurveValue(0, EntityY(it\collider), 20), CurveValue(0, EntityZ(it\collider), 20))
 							EndIf
+							found = True
+							Exit
 						EndIf
 					Next
-
 					If Not found Then
+						For it.Items = Each Items
+							If it\itemtemplate\group = "battery" And EntityDistance(it\collider, n\ManipulationType) < 0.6 And (Not it\Picked) Then
+								If it\itemtemplate\name = "killbat" Then it\state = True
+								dist# = EntityDistance(it\collider, n\ManipulationType)
+								EntityParent(it\collider, n\ManipulationType)
+								DebugLog(dist + " " + EntityDistance(it\collider, n\Collider))
+								If dist < 0.01 Then PositionEntity(it\collider, 0, 0, 0)
+								found = True
+								Exit
+							EndIf
+						Next
+					EndIf
+					
+					; There is a really odd bug where for some reason the position of the bone entities appears incorrect (likely unscaled?) for one frame.
+					If (Not found) And EntityDistance(n\Collider, n\ManipulationType) < 1 Then
 						n\State = 66
 					Else If n\State = 66 Then
-						n\State = 0
-						n\State2 = 0
+						n\State = 67
 					EndIf
 				EndIf
 				
