@@ -326,26 +326,27 @@ Function UpdateEvents()
 						
 						If (i>0 And i<26) Then
 							If Not CommotionState(i) Then ;Prevents the same commotion file from playing more then once.
-								PlaySound_Strict(LoadTempSound("SFX\Room\Intro\Commotion\Commotion"+i+".ogg"))
-								CommotionState(i) = True
+								CommotionState(i) = PlaySound_Strict(LoadTempSound("SFX\Room\Intro\Commotion\Commotion"+i+".ogg"))
 							EndIf
 						EndIf
-						
-						If (i>26) Then
-							If e\room\NPC[0] <> Null Then RemoveNPC(e\room\NPC[0])
-							;If e\room\NPC[1] <> Null Then RemoveNPC(e\room\NPC[1])
-							;If e\room\NPC[2] <> Null Then RemoveNPC(e\room\NPC[2])
-							
-							FreeEntity e\room\Objects[0]
-							FreeEntity e\room\Objects[1]
-							e\room\Objects[0]=0
-							e\room\Objects[1]=0
-							
-							DebugLog "delete alarm"
-							
-							RemoveEvent(e)							
+					EndIf
+
+					If i > 26 Lor PlayerRoom\RoomTemplate\Name = "pocketdimension" Lor PlayerRoom\RoomTemplate\Name = "dimension1499" Lor PlayerRoom\RoomTemplate\Name = "halloweenfields" Lor PlayerRoom\RoomTemplate\Name = "halloweenpd" Then
+						If i <= 26 Then
+							For i = 1 To 25
+								StopChannel(CommotionState(i))
+							Next
 						EndIf
-					EndIf					
+
+						If e\room\NPC[0] <> Null Then RemoveNPC(e\room\NPC[0])
+							
+						FreeEntity e\room\Objects[0]
+						FreeEntity e\room\Objects[1]
+						e\room\Objects[0]=0
+						e\room\Objects[1]=0
+							
+						RemoveEvent(e)
+					EndIf
 				End If
 				;[End Block]
 			Case "173" ;the intro sequence
