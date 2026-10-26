@@ -688,6 +688,7 @@ Function PickItem(item.Items)
 							BlurTimer = 10 * 70
 							CameraShake = 3
 							LostHands = True
+							DeathMSG = "Subject D-9341 found deceased with both hands severed near [REDACTED], where SCP-330 was recovered. Presumed fatal interaction with the object."
 							PlaySound_Strict(LoadTempSound("SFX\General\Slash1.ogg"))
 							FreeEntity(pvt)
 							Return

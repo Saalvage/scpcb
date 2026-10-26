@@ -94,7 +94,7 @@ Function CreateNPC.NPCs(NPCtype%, x#, y#, z#)
 			n\obj = LoadMesh_Strict("GFX\npcs\173_2.b3d")
 			
 			;On Halloween set jack-o-latern texture.
-			HalloweenTex = Left(CurrentDate(), 7) = "31 Oct "
+			HalloweenTex = IsHalloween
 			If HalloWeenTex Then
 				Local texFestive = LoadTexture_Strict("GFX\npcs\173h.pt", 1)
 				EntityTexture n\obj, texFestive, 0, 0

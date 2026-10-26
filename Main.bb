@@ -1,6 +1,6 @@
-Const VersionNumber$ = "1.3.12.6"
+Const VersionNumber$ = "1.3.12.7"
 ;Only change this if the version given isn't working with the current build version - ENDSHN
-Const CompatibleNumber$ = "1.3.12"
+Const CompatibleNumber$ = "1.3.12.7"
 
 InitErrorMsgs(11, True)
 SetErrorMsg(0, "An error occured in SCP - Containment Breach v" + VersionNumber)
@@ -163,6 +163,7 @@ Global ShowFPS = GetOptionInt("graphics", "show FPS")
 Global WireframeState
 Global HalloweenTex
 Global IsBirthday = Left(CurrentDate(), 7) = "15 Apr " Lor HasCLIFlag("birthday")
+Global IsHalloween = Left(CurrentDate(), 7) = "31 Oct " Lor HasCLIFlag("halloween")
 Global BirthdayHat = False
 
 Global BorderlessWindowed% = GetOptionInt("graphics", "borderless windowed")
@@ -2725,8 +2726,12 @@ Function UseDoor(d.Doors, showmsg%=True, playsfx%=True)
 			ActivateScannerMsgCooldown()
 		Else
 			If showmsg = True And (Not HasScannerMsg()) Then 
-				PlaySound_Strict ScannerSFX2
-				Msg = I_Loc\MessageButton_DnaSelf
+				If LostHands Then
+					Msg = "You have no palms to place onto the scanner."
+				Else
+					PlaySound_Strict ScannerSFX2
+					Msg = I_Loc\MessageButton_DnaSelf
+				EndIf
 				MsgTimer = 70 * 10
 			EndIf
 			Return			
@@ -9176,8 +9181,15 @@ Function LoadEntities()
 
 	InitMaterials()
 
-	If IsBirthday Then
-		tex = LoadTexture("GFX\map\miscsigns3.ae", 1)
+	tex = 0
+	If IsHalloween Then
+		tex = LoadTexture_Strict("GFX\map\Halloween\miscsigns3_Halloween.png", 1)
+	Else If IsBirthday Then
+		tex = LoadTexture_Strict("GFX\map\miscsigns3.ae", 1)
+	Else
+		tex = LoadTexture_Strict("GFX\map\Halloween\miscsigns3_Pumpkin.png", 1)
+	End If
+	If tex <> 0 Then
 		TextureBlend(tex, 5)
 		AddTextureToCache(tex, "GFX\map\miscsigns3.jpg")
 	EndIf
