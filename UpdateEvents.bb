@@ -8538,6 +8538,35 @@ Function UpdateEvents()
 					Next
 				EndIf
 				;[End Block]
+			Case "halloweenpd"
+				;[Block]
+				If PlayerRoom=e\room Then
+					PlayerFallingPickDistance = 0
+					CurrStepSFX = 1
+					ShouldPlay = 3
+					BlurTimer = 900
+
+					If e\EventState2 = 0 And BlinkTimer <= -5 Then
+						e\EventState2 = 1
+
+						count% = 0
+						For w.WayPoints = Each WayPoints
+							If w\room = e\room Then count = count + 1
+						Next
+						Local picked% = Rand(count)-1
+						For w.WayPoints = Each WayPoints
+							If w\room = e\room Then
+								If picked = 0 Then
+									PositionEntity(Collider, EntityX(w\obj, True), EntityY(w\obj, True) + 0.2, EntityZ(w\obj, True))
+									ResetEntity(Collider)
+									Exit
+								EndIf
+								picked = picked - 1
+							EndIf
+						Next
+					ElseIf e\EventState2 = 1 And BlinkTimer > -5 Then
+						e\EventState2 = 0
+					EndIf
 				EndIf
 				;[End Block]
 		End Select

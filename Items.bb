@@ -692,6 +692,26 @@ Function PickItem(item.Items)
 							FreeEntity(pvt)
 							Return
 						EndIf
+					Case "bone"
+						For e.Events = Each Events
+							If e\EventName = "halloweenpd" And PlayerRoom = e\room Then
+								e\EventState = e\EventState + 1
+								If e\EventState <= 8 Then
+									PlaySound_Strict(LoadTempSound("SFX\Halloween\BonePickUp.ogg"))
+									RemoveItem(item)
+									Msg = e\EventState + "/8 bone fragments"
+									MsgTimer = 70*5
+
+									If e\EventState = 8 Then
+										item = CreateItem("boneflute", 0, 0, 0)
+										TeleportFromHalloweenRoom()
+									Else
+										Return
+									EndIf
+								EndIf
+								Exit
+							EndIf
+						Next
 				End Select
 				
 				If item\itemtemplate\sound <> 66 Then PlaySound_Strict(PickSFX(item\itemtemplate\sound))
