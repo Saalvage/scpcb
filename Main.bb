@@ -2805,7 +2805,7 @@ Function UseDoor(d.Doors, showmsg%=True, playsfx%=True)
 	;If d\dir = 1 Then sound = 0 Else sound=Rand(0, 2)
 	If d\dir = 1 Then sound=Rand(0, 1) Else sound=Rand(0, 2)
 	
-	If playsfx=True Then
+	If playsfx=True And d\dir < 4 Then
 		If d\open Then
 			If d\LinkedDoor <> Null Then d\LinkedDoor\timerstate = d\LinkedDoor\timer
 			d\timerstate = d\timer

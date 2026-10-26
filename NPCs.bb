@@ -3956,7 +3956,7 @@ Function UpdateNPCs()
 											n\State3 = Rand(700,1400)
 										Case 3
 											For d.Doors = Each Doors
-												If d\locked = False And d\KeyCard = 0 And d\Code = "" Then
+												If d\locked = False And d\KeyCard = 0 And d\Code = "" And d\MTFClose Then
 													If Abs(EntityX(d\frameobj)-EntityX(n\Collider))<16.0 Then
 														If Abs(EntityZ(d\frameobj)-EntityZ(n\Collider))<16.0 Then
 															UseDoor(d, False)
