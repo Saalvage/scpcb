@@ -8504,31 +8504,40 @@ Function UpdateEvents()
 			Case "halloweenfields"
 				;[Block]
 				If PlayerRoom=e\room Then
-					If e\room\NPC[0]=Null Then
-						e\room\NPC[0] = CreateNPC(NPCType939, EntityX(e\room\Objects[10], True), EntityY(e\room\Objects[10], True), EntityZ(e\room\Objects[10], True))
-						e\room\NPC[0]\State = 2
-						e\room\NPC[0]\State2 = 17
-						e\room\NPC[0]\PrevState = 17
-						e\room\NPC[0]\LastDist = 8
-					ElseIf e\room\NPC[0]\State = 66 Then
-						e\room\NPC[0]\State = 2
-					EndIf
+					Local spawnPos%[3], startPos%[3]
+					spawnPos[0] = 10 : spawnPos[1] = 14 : spawnPos[2] = 11
+					startPos[0] = 17 : startPos[1] = 14 : startPos[2] = 11
+					For i = 0 To 2
+						If e\room\NPC[i]=Null Then
+							e\room\NPC[i] = CreateNPC(NPCType939, EntityX(e\room\Objects[spawnPos[i]], True), EntityY(e\room\Objects[spawnPos[i]], True), EntityZ(e\room\Objects[spawnPos[i]], True))
+							e\room\NPC[i]\State = 2
+							e\room\NPC[i]\State2 = startPos[i]
+							e\room\NPC[i]\PrevState = 17
+							e\room\NPC[i]\LastDist = 8
+							ChangeNPCTextureID(e\room\NPC[i], 0)
+						ElseIf e\room\NPC[i]\State = 66 Then
+							e\room\NPC[i]\State = 2
+						EndIf
+					Next
 
 					ShouldPlay = 9
 					CurrStepSFX = 2
 
 					If Not DebugHUD Then
-						CameraRange Camera,RoomScale,12.5
-						CameraFogRange Camera,0.5,12
 						CameraClsColor Camera,191, 133, 67
 						CameraFogColor Camera,191, 133, 67
+						TempLightVolume = TempLightVolume*2
 					EndIf
 
 					If (Not NoClip) And EntityY(Collider) - EntityY(e\room\obj, True) > 0.6 Then
 						MoveEntity(Collider, 0, -0.1 * FPSfactor, 0)
 					EndIf
 				Else
-					If e\room\NPC[0]<>Null Then e\room\NPC[0]\State = 66
+					For i = 0 To 2
+						If e\room\NPC[i]<>Null Then e\room\NPC[i]\State = 66
+					Next
+				EndIf
+				;[End Block]
 				EndIf
 				;[End Block]
 		End Select

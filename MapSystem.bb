@@ -1367,9 +1367,9 @@ Function PlaceForest_MapCreator(fr.Forest,x#,y#,z#,r.Rooms)
 	CatchErrors("PlaceForest_MapCreator")
 End Function
 
-Function PlaceForestProps(parent%, hmap%, tempf3#, yscale#, treeMesh%, leafMesh%, rockMesh%, minHeight%=100, maxHeight%=260, maxHeightCap%=255)
+Function PlaceForestProps(parent%, hmap%, tempf3#, yscale#, treeMesh%, leafMesh%, rockMesh%, minHeight%=100, maxHeight%=260, maxHeightCap%=255, treeProp%=7, rockMinSize#=1, rockMaxSize#=1)
 	;place trees and other details
-	;only placed on spots where the value of the heightmap is above 100
+	;only placed on spots where the value of the heightmap is above minHeight
 	Local width = TextureWidth(hmap)
 	Local buf% = TextureBuffer(hmap)
 	LockBuffer(buf)
@@ -1379,15 +1379,25 @@ Function PlaceForestProps(parent%, hmap%, tempf3#, yscale#, treeMesh%, leafMesh%
 			Local red% = (ReadPixelFast(lx,width-ly,buf) And $FF0000) Shr 16
 			
 			If Min(red, maxHeightCap) > Rand(minHeight, maxHeight) Then
-				Select Rand(0,7)
-					Case 0,1,2,3,4,5,6 ;create a tree
-						Local detail_entity%=CreateMesh()
+				Select Rand(0,treeProp)
+					Case 0 ;add a rock
+						Local detail_entity=CreatePivot()
+						EntityInstance(detail_entity, rockMesh)
+						;EntityType detail_entity,HIT_MAP
+						Local tempf2#=Rnd(rockMinSize,rockMaxSize)
+						ScaleEntity detail_entity,tempf2,tempf2,tempf2,True
+						
+						PositionEntity detail_entity,lx*tempf4-(tempf3/2.0),red*yscale-1.3,ly*tempf4-(tempf3/2.0),True
+						
+						RotateEntity detail_entity,0.0,Rnd(360.0),0.0,True
+					Default ;create a tree
+						detail_entity%=CreatePivot()
 						EntityInstance(detail_entity, treeMesh)
 						;EntityType detail_entity,HIT_MAP
-						Local tempf2#=Rnd(0.25,0.4)
+						tempf2#=Rnd(0.25,0.4)
 						
 						For i = 0 To 3
-							Local d=CreateMesh()
+							Local d=CreatePivot()
 							EntityInstance(d, leafMesh)
 							;ScaleEntity d,tempf2*1.1,tempf2,tempf2*1.1,True
 							RotateEntity d, 0, 90*i+Rnd(-20,20), 0
@@ -1397,21 +1407,9 @@ Function PlaceForestProps(parent%, hmap%, tempf3#, yscale#, treeMesh%, leafMesh%
 						
 						ScaleEntity detail_entity,tempf2*1.1,tempf2,tempf2*1.1,True
 						PositionEntity detail_entity,lx*tempf4-(tempf3/2.0),red*yscale-Rnd(3.0,3.2),ly*tempf4-(tempf3/2.0),True
-						
 						RotateEntity detail_entity,Rnd(-5,5),Rnd(360.0),0.0,True
 						
 						;EntityAutoFade(detail_entity,4.0,6.0)
-					Case 7 ;add a rock
-						detail_entity=CreateMesh()
-						EntityInstance(detail_entity, rockMesh)
-						;EntityType detail_entity,HIT_MAP
-						tempf2=Rnd(0.01,0.012)
-						;ScaleEntity detail_entity,tempf2,tempf2*Rnd(1.0,2.0),tempf2,True
-						
-						PositionEntity detail_entity,lx*tempf4-(tempf3/2.0),red*yscale-1.3,ly*tempf4-(tempf3/2.0),True
-						
-						
-						RotateEntity detail_entity,0.0,Rnd(360.0),0.0,True
 				End Select
 				
 				;PositionEntity detail_entity,Rnd(0.0,tempf3)-(tempf3/2.0),red*yscale-0.05,Rnd(0.0,tempf3)-(tempf3/2.0),True
@@ -5509,7 +5507,7 @@ Function FillRoom(r.Rooms)
 			
 			Local terr% = load_terrain(hmap, 0.05, GroundTexture, PathTexture, mask, 1, 16)
 
-			Local pumpkin% = LoadMesh_Strict("GFX\items\halloween\pumpkin.b3d")
+			Local pumpkin% = LoadMesh_Strict("GFX\map\halloween\pumpkin.b3d")
 			EntityEffect(pumpkin, InstanceEffect)
 
 			fr.Forest = First Forest
@@ -5521,7 +5519,7 @@ Function FillRoom(r.Rooms)
 				tree = LoadMesh_Strict("GFX\map\forest\detail\treetest4.b3d")
 				leaves = LoadMesh_Strict("GFX\map\forest\detail\treetest5.b3d")
 			EndIf
-			PlaceForestProps(terr, hmap, MeshWidth(terr), 0.05, tree, leaves, pumpkin, 100, 800, 186)
+			PlaceForestProps(terr, hmap, MeshWidth(terr), 0.05, tree, leaves, pumpkin, 100, 800, 186, 5, 0.8, 1.2)
 			If fr = Null Then
 				FreeEntity(tree)
 				FreeEntity(leaves)

@@ -3704,7 +3704,13 @@ Function UpdateNPCs()
 							;Animate2(n\obj,AnimTime(n\obj),644,683,28*n\CurrSpeed) ;walk
 							
 							If (prevFrame<664 And n\Frame=>664) Or (prevFrame>673 And n\Frame<654) Then
-								PlaySound2(StepSFX(4, 0, Rand(0,3)), Camera, n\Collider, 12.0)
+								Local stepSound%
+								If n\TextureID = 1 Then
+									stepSound = Step2SFX(Rand(3,5))
+								Else
+									stepSound = StepSFX(4, 0, Rand(0,3))
+								EndIf
+								PlaySound2(stepSound, Camera, n\Collider, 12.0)
 								If Rand(10)=1 Then
 									temp = False
 									If n\SoundChn = 0 Then 
@@ -3714,7 +3720,11 @@ Function UpdateNPCs()
 									EndIf
 									If temp Then
 										If n\Sound <> 0 Then FreeSound_Strict n\Sound : n\Sound = 0
-										n\Sound = LoadSound_Strict("SFX\SCP\939\"+(n\ID Mod 3)+"Lure"+Rand(1,10)+".ogg")
+										If n\TextureID = 1 Then
+											n\Sound = LoadSound_Strict("SFX\SCP\939\Halloween\0Lure"+Rand(1,5)+".ogg")
+										Else
+											n\Sound = LoadSound_Strict("SFX\SCP\939\"+(n\ID Mod 3)+"Lure"+Rand(1,10)+".ogg")
+										EndIf
 										n\SoundChn = PlaySound2(n\Sound, Camera, n\Collider)
 									EndIf
 								EndIf
@@ -3766,8 +3776,13 @@ Function UpdateNPCs()
 										EndIf
 									EndIf
 									
-									If Injuries>4.0 Then 
-										DeathMSG=I_Loc\DeathMessage_939
+									If Injuries>4.0 Then
+										If n\TextureID = 1 Then
+											; Consistent with 860-2 - if the player's body is not (partially) recoverable, no death message is shown.
+											DeathMSG=""
+										Else
+											DeathMSG=I_Loc\DeathMessage_939
+										EndIf 
 										Kill()
 										If (Not GodMode) Then n\State = 5
 									EndIf								
@@ -3779,7 +3794,12 @@ Function UpdateNPCs()
 										;Animate2(n\obj,AnimTime(n\obj),449,464,6*n\CurrSpeed) ;run
 										
 										If (prevFrame<452 And n\Frame=>452) Or (prevFrame<459 And n\Frame=>459) Then
-											PlaySound2(StepSFX(1, 1, Rand(0,7)), Camera, n\Collider, 12.0)
+											If n\TextureID = 1 Then
+												stepSound = Step2SFX(Rand(3,5))
+											Else
+												stepSound = StepSFX(0, 1, Rand(0,7))
+											EndIf
+											PlaySound2(stepSound, Camera, n\Collider, 12.0)
 										EndIf										
 										
 										If Distance(n\EnemyX, n\EnemyZ, EntityX(n\Collider), EntityZ(n\Collider))<1.1 Then ;player is visible
@@ -3825,10 +3845,18 @@ Function UpdateNPCs()
 						If PlayerSoundVolume*1.2>dist Or dist < 1.5 Then
 							If n\State3 = 0 Then
 								If n\Sound <> 0 Then FreeSound_Strict n\Sound : n\Sound = 0
-								n\Sound = LoadSound_Strict("SFX\SCP\939\"+(n\ID Mod 3)+"Attack"+Rand(1,3)+".ogg")
+								If n\TextureID = 1 Then
+									n\Sound = LoadSound_Strict("SFX\SCP\939\Halloween\0Attack"+Rand(1,3)+".ogg")
+								Else
+									n\Sound = LoadSound_Strict("SFX\SCP\939\"+(n\ID Mod 3)+"Attack"+Rand(1,3)+".ogg")
+								EndIf
 								n\SoundChn = PlaySound2(n\Sound, Camera, n\Collider)										
 								
-								PlaySound_Strict(LoadTempSound("SFX\SCP\939\attack.ogg"))
+								If n\TextureID = 1 Then
+									PlaySound_Strict(LoadTempSound("SFX\SCP\939\Halloween\attack.ogg"))
+								Else
+									PlaySound_Strict(LoadTempSound("SFX\SCP\939\attack.ogg"))
+								EndIf
 								n\State3 = 1
 							EndIf
 							
@@ -3836,7 +3864,11 @@ Function UpdateNPCs()
 						ElseIf PlayerSoundVolume*1.6>dist
 							If n\State<>1 And n\Reload <= 0 Then
 								If n\Sound <> 0 Then FreeSound_Strict n\Sound : n\Sound = 0
-								n\Sound = LoadSound_Strict("SFX\SCP\939\"+(n\ID Mod 3)+"Alert"+Rand(1,3)+".ogg")
+								If n\TextureID = 1 Then
+									n\Sound = LoadSound_Strict("SFX\SCP\939\Halloween\0Alert"+Rand(1,3)+".ogg")
+								Else
+									n\Sound = LoadSound_Strict("SFX\SCP\939\"+(n\ID Mod 3)+"Alert"+Rand(1,3)+".ogg")
+								EndIf
 								n\SoundChn = PlaySound2(n\Sound, Camera, n\Collider)	
 								
 								n\Frame = 175
@@ -7659,18 +7691,19 @@ Function ChangeNPCTextureID(n.NPCs,textureid%)
 
 	Local oldObj = n\obj
 	If n\NPCtype = NPCtype066 And n\TextureID = 1 Then
-		Local found% = False
-		For n2.NPCs = Each NPCs
-			If n2 <> n And n2\NPCtype = NPCtype066 And n2\TextureID = n\TextureID Then
-				n\obj = CopyEntity(n2\obj)
-				found% = True
-				Exit
-			EndIf
-		Next
-		If Not found% Then
+		If Not CopyExistingNPCTextureIDObj(n) Then
 			n\obj = LoadAnimMesh_Strict("GFX\npcs\Halloween\jell066.b3d")
 			Local temp# = GetModdedINIFloat("DATA\NPCs.ini", "SCP-066", "scale")/2.5
 			ScaleEntity n\obj, temp, temp, temp
+			n\NVName = I_Loc\NPC_Unidentified
+		EndIf
+		n\ManipulationType = FindChild(n\obj, GetModdedINIString(NPCBones, "SCP-066", "item_bonename"))
+	ElseIf n\NPCtype = NPCtype939 And n\TextureID = 1 Then
+		If Not CopyExistingNPCTextureIDObj(n) Then
+			n\obj = LoadAnimMesh_Strict("GFX\npcs\Halloween\pumpkinmonster.b3d")
+			temp# = (GetModdedINIFloat("DATA\NPCs.ini", "forestmonster", "scale") / 20.0)
+			ScaleEntity n\obj, temp, temp, temp
+			n\NVName = I_Loc\NPC_Unidentified
 		EndIf
 	Else
 		n\obj = CopyEntity(DTextures[textureid%+1])
@@ -7685,7 +7718,15 @@ Function ChangeNPCTextureID(n.NPCs,textureid%)
 	FreeEntity oldObj
 End Function
 
-
+Function CopyExistingNPCTextureIDObj%(n.NPCs)
+	For n2.NPCs = Each NPCs
+		If n2 <> n And n2\NPCtype = n\NPCtype And n2\TextureID = n\TextureID Then
+			n\obj = CopyEntity(n2\obj)
+			Return True
+		EndIf
+	Next
+	Return False
+End Function
 
 
 

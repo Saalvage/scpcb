@@ -9804,6 +9804,10 @@ Function NullGame(playbuttonsfx%=True)
 	Delete Each AchievementMsg
 	CurrAchvMSGID = 0
 	
+	For fr.Forest = Each Forest
+		DestroyForest(fr)
+	Next
+
 	SetErrorMsg(7, "")
 
 	;DeInitExt
