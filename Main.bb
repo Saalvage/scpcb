@@ -1924,7 +1924,7 @@ Function Teleport(r.Rooms)
 		it\disttimer = 0
 	Next
 	PlayerRoom = r
-
+	UpdateRooms()
 End Function
 
 ;---------------------------------------------------------------------------------------------------
@@ -7482,15 +7482,7 @@ Function DrawGUI()
 					;[End Block]
 				Case "eyecandy"
 					;[Block]
-					If CanUseItem(False, False, True)
-						If SteamActive Then Steam_SetStatInt("candies_eaten", Steam_GetStatInt("candies_eaten") + 1)
-
-						Msg = "You swallowed the candy. It tastes sour and electrifying. You feel a presence nearby."
-						MsgTimer = 70*12
-
-						RemoveItem(SelectedItem)
-						SelectedItem = Null
-						
+					If CanUseItem(False, False, True)						
 						Local closestWaypoint.WayPoints
 						Local minDist# = INFINITY
 						Local collX# = EntityX(Collider), collY# = EntityY(Collider), collZ# = EntityZ(Collider)
@@ -7500,20 +7492,33 @@ Function DrawGUI()
 								closestWaypoint = w
 								minDist = dist
 							EndIf
-								
 						Next
-						Local jello.NPCs = CreateNPC(NPCtype066, EntityX(closestWaypoint\obj, True), EntityY(closestWaypoint\obj, True) + 0.1, EntityZ(closestWaypoint\obj, True))
-						jello\State = 2
-						it = CreateItem("killbat", 0, 0, 0)
-						it\state = True
-						ChangeNPCTextureID(jello, 0)
-						EntityParent(it\collider, jello\ManipulationType)
-						PositionEntity(it\collider, 0, 0, 0)
-						ResetEntity(it\collider)
+						If minDist < 8 Then
+							If SteamActive Then Steam_SetStatInt("candies_eaten", Steam_GetStatInt("candies_eaten") + 1)
+							
+							Local jello.NPCs = CreateNPC(NPCtype066, EntityX(closestWaypoint\obj, True), EntityY(closestWaypoint\obj, True) + 0.1, EntityZ(closestWaypoint\obj, True))
+							jello\State = 2
+							it = CreateItem("killbat", 0, 0, 0)
+							it\state = True
+							ChangeNPCTextureID(jello, 0)
+							EntityParent(it\collider, jello\ManipulationType)
+							PositionEntity(it\collider, 0, 0, 0)
+							ResetEntity(it\collider)
+
+							RemoveItem(SelectedItem)
+							
+							LightVolume = -1.25
+							
+							Msg = "You swallowed the candy. It tastes sour and electrifying. You feel a presence nearby."
+						Else
+							Msg = "You tried putting the candy in your mouth, but it just gives you an electric shock."
+						EndIf
+						MsgTimer = 70*12
 
 						PlaySound_Strict(LoadTempSound("SFX\Room\Tesla\Shock.ogg"))
 						LightFlash = 0.5
-						LightVolume = -1.25
+
+						SelectedItem = Null
 					EndIf
 					;[End Block]
 				Case "lollipop"
@@ -7521,33 +7526,53 @@ Function DrawGUI()
 					If CanUseItem(False, False, True)
 						If SteamActive Then Steam_SetStatInt("candies_eaten", Steam_GetStatInt("candies_eaten") + 1)
 
-						Msg = "You ate the lollipop. It tastes of pumpkin pie."
-						MsgTimer = 70*12
+						MsgTimer = 70*10
+						If PlayerRoom\RoomTemplate\Name = "halloweenfields" Then
+							Msg = "You ate the lollipop. You are numb to its taste."
+							RemoveItem(SelectedItem)
+						Else
+							If CanTeleportToHalloweenRoom() Then
+								Msg = "You ate the lollipop. It tastes of pumpkin pie."
+								SelectedItem\state = True
+								DropItem(SelectedItem, False)
+								PositionEntity(SelectedItem\collider, 0, 0, 0)
+								ResetEntity(SelectedItem\collider)
+							Else
+								Msg = "You can't get it down right now."
+								MsgTimer = 70*5
+							EndIf
+						EndIf
 
-						SelectedItem\state = True
-						DropItem(SelectedItem, False)
-						PositionEntity(SelectedItem\collider, 0, 0, 0)
-						ResetEntity(SelectedItem\collider)
 						SelectedItem = Null
 					EndIf
 					;[End Block]
-				Case "candybar"
+				Case "chocolate"
 					;[Block]
 					If CanUseItem(False, False, True)
 						If SteamActive Then Steam_SetStatInt("candies_eaten", Steam_GetStatInt("candies_eaten") + 1)
 
-						Msg = "You ate the candy bar. It tastes of decay."
-						MsgTimer = 70*7
+						MsgTimer = 70*10
+						If PlayerRoom\RoomTemplate\Name = "halloweenpd" Lor PlayerRoom\RoomTemplate\Name = "pocketdimension" Then
+							Msg = "You ate the chocolate bar. You are numb to its taste."
+							RemoveItem(SelectedItem)
+						Else
+							If CanTeleportToHalloweenRoom() Then
+								Msg = "You ate the chocolate bar. It tastes of decay."
+								SelectedItem\state = True
+								DropItem(SelectedItem, False)
+								PositionEntity(SelectedItem\collider, 0, 0, 0)
+								ResetEntity(SelectedItem\collider)
 
-						SelectedItem\state = 69.9
-						DropItem(SelectedItem, False)
-						PositionEntity(SelectedItem\collider, 0, 0, 0)
-						ResetEntity(SelectedItem\collider)
+								de.Decals = CreateDecal(0, EntityX(Collider), EntityY(Collider)-0.29, EntityZ(Collider), 90, Rand(360), 0)
+								de\Size = 0.05 : de\SizeChange = 0.001 : EntityAlpha(de\obj, 0.8) : UpdateDecals
+								PlaySound_Strict(DecaySFX(0))
+							Else
+								Msg = "You can't get it down right now."
+								MsgTimer = 70*5
+							EndIf
+						EndIf
+
 						SelectedItem = Null
-
-						de.Decals = CreateDecal(0, EntityX(Collider), EntityY(Collider)-0.29, EntityZ(Collider), 90, Rand(360), 0)
-						de\Size = 0.05 : de\SizeChange = 0.001 : EntityAlpha(de\obj, 0.8) : UpdateDecals
-						PlaySound_Strict(DecaySFX(0))
 					EndIf
 					;[End Block]
 				Case "pumpkin"
@@ -7569,7 +7594,7 @@ Function DrawGUI()
 						WearingPumpkin = Not WearingPumpkin
 						NoTarget = WearingPumpkin
 					Else
-						Msg = "Can't wear"
+						Msg = "You need to take off any other mask to put on the pumpkin mask."
 					EndIf
 					SelectedItem = Null
 					MsgTimer = 70 * 5
@@ -7727,6 +7752,17 @@ Function DrawGUI()
 	DrawHUD()
 	
 	CatchErrors("DrawGUI")
+End Function
+
+Function CanTeleportToHalloweenRoom()
+	Select PlayerRoom\RoomTemplate\Name
+		Case "gatea", "dimension1499", "pocketdimension", "halloweenpd", "halloweenfields"
+			Return False
+		Case "exit1", "room860", "room1123"
+			Return EntityY(Collider)<1
+		Default
+			Return True
+	End Select
 End Function
 
 Function TeleportFromHalloweenRoom%()
@@ -11007,7 +11043,7 @@ Function Use914(item.Items, setting$, x#, y#, z#)
 								Case 2
 									newCandy = "lollipop"
 								Case 3
-									newCandy = "candybar"
+									newCandy = "chocolate"
 							End Select
 						Until newCandy <> item\itemtemplate\Name
 						CreateItem(newCandy, x, y, z)

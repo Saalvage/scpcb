@@ -6920,6 +6920,16 @@ Function UpdateEvents()
 				
 			Case "testroom173"
 				;[Block]
+				If e\EventState2 = 0 And e\room\Objects[3] <> 0 Then
+					For r2.Rooms = Each Rooms
+						If r2\RoomTemplate\Name = "room4info" Then
+							it.Items = Object.Items(e\room\Objects[3])
+							If it <> Null Then RemoveItem(it)
+							Exit
+						EndIf
+					Next
+					e\EventState2 = 1
+				EndIf
 				If PlayerRoom = e\room	
 					If Curr173\Idle = 0 Then 
 						If e\EventState = 0 Then
@@ -8528,7 +8538,7 @@ Function UpdateEvents()
 					If Not DebugHUD Then
 						CameraClsColor Camera,191, 133, 67
 						CameraFogColor Camera,191, 133, 67
-						TempLightVolume = TempLightVolume*2
+						TempLightVolume = TempLightVolume*1.5
 					EndIf
 
 					If (Not NoClip) And EntityY(Collider) - EntityY(e\room\obj, True) > 0.6 Then

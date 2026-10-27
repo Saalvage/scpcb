@@ -524,7 +524,9 @@ Function UpdateItems()
 
 					If i\state > 70 * 10 Then BlurTimer = Max(BlurTimer, 1400)
 
-					If i\state > 70 * 15 Then
+					If (Not CanTeleportToHalloweenRoom()) Then
+						RemoveItem(i)
+					ElseIf i\state > 70 * 15 Then
 						Local r.Rooms = Null
 						For e.Events = Each Events
 							If e\EventName = "halloweenfields" Then
@@ -568,7 +570,7 @@ Function UpdateItems()
 						RemoveItem(i)
 					EndIf
 				EndIf
-			Case "candybar"
+			Case "chocolate"
 				If i\state > 0 Then
 					CurrStepSFX = 1
 					
@@ -583,7 +585,9 @@ Function UpdateItems()
 						PlaySound_Strict(DecaySFX(Rand(3)))
 					EndIf
 
-					If i\state > 70 * 15 Then
+					If (Not CanTeleportToHalloweenRoom()) Then
+						RemoveItem(i)
+					ElseIf i\state > 70 * 15 Then
 						r = Null
 						For e.Events = Each Events
 							If e\EventName = "halloweenpd" Then
@@ -605,7 +609,7 @@ Function UpdateItems()
 						EndIf
 
 						If r = Null Then
-							r = CreateRoom(0, ROOM1, 32, 1500, 128, 0, "halloweenpd")
+							r = CreateRoom(0, ROOM1, -8, 1500, 128, 0, "halloweenpd")
 							Teleport(r)
 							CreateEvent("halloweenpd","halloweenpd",0)
 						EndIf
@@ -683,7 +687,11 @@ Function PickItem(item.Items)
 							ShowEntity Light
 							LightFlash = 1.0
 							PlaySound_Strict(IntroSFX(11))
-							DeathMSG = I_Loc\DeathMessage_Killbat
+							If PlayerRoom\RoomTemplate\Name = "914" Then
+								DeathMSG = I_Loc\DeathMessage_Killbat
+							Else
+								DeathMSG = I_Loc\DeathMessage_KillbatOutside
+							EndIf
 							Kill()
 						EndIf
 					Case "scp148"
@@ -771,7 +779,7 @@ Function PickItem(item.Items)
 								Case 1
 									item = CreateItem("lollipop", 0, 0, 0)
 								Case 2
-									item = CreateItem("candybar", 0, 0, 0)
+									item = CreateItem("chocolate", 0, 0, 0)
 							End Select
 						Else
 							Local pvt% = CreatePivot()

@@ -2721,17 +2721,9 @@ Function FillRoom(r.Rooms)
 			it = CreateItem("snav300", r\x - 312.0 * RoomScale, r\y + 264.0 * RoomScale, r\z + 176.0 * RoomScale)
 			it\state = 20 : EntityParent(it\collider, r\obj)
 
-			Local found% = False
-			For r2.Rooms = Each Rooms
-				If r2\RoomTemplate\Name = "room4info" Then
-					found = True
-					Exit
-				EndIf
-			Next
-			If Not found Then
-				it = CreateItem("scp330", r\x - 3.6, r\y + 0.5, r\z + 0.6)
-				EntityParent(it\collider, r\obj)
-			EndIf
+			it = CreateItem("scp330", r\x - 3.6, r\y + 0.5, r\z + 0.6)
+			EntityParent(it\collider, r\obj)
+			r\Objects[3] = Handle(it)
 			;[End Block]
 		Case "room3tunnel"
 			;[Block]

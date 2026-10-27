@@ -425,6 +425,7 @@ Type LocalizationTable
     Field DeathMessage_NtfBloodloss$
     Field DeathMessage_Tesla$
     Field DeathMessage_Killbat$
+    Field DeathMessage_KillbatOutside$
     Field DeathMessage_Suicide$[4]
     Field DeathMessage_Gassed$
     Field Cup_Of$
@@ -977,6 +978,7 @@ Function LoadLocalization(loc.LocalizationTable, file$)
                             Case "ntf.bloodloss" If loc\DeathMessage_NtfBloodloss = "" Then loc\DeathMessage_NtfBloodloss = value
                             Case "tesla" If loc\DeathMessage_Tesla = "" Then loc\DeathMessage_Tesla = value
                             Case "killbat" If loc\DeathMessage_Killbat = "" Then loc\DeathMessage_Killbat = value
+                            Case "killbat.outside" If loc\DeathMessage_KillbatOutside = "" Then loc\DeathMessage_KillbatOutside = value
                             Case "suicide_1" If loc\DeathMessage_Suicide[1] = "" Then loc\DeathMessage_Suicide[1] = value
                             Case "suicide_2" If loc\DeathMessage_Suicide[2] = "" Then loc\DeathMessage_Suicide[2] = value
                             Case "suicide_3" If loc\DeathMessage_Suicide[3] = "" Then loc\DeathMessage_Suicide[3] = value
