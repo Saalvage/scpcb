@@ -5101,6 +5101,7 @@ Function UpdateEvents()
 					If e\EventState = 0 Then
 						If EntityDistance(Collider, e\room\Objects[3])<2 Then
 							n.NPCs = CreateNPC(NPCtypeD, EntityX(e\room\Objects[4],True),0.5,EntityZ(e\room\Objects[4],True))
+							MoveEntity(n\Collider, 0.15 * Cos(e\room\angle), 0, 0.15 * Sin(e\room\angle))
 							
 							n\texture = "GFX\NPCs\035victim.jpg"
 							n\Model = "GFX\NPCs\035.b3d"
