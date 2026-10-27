@@ -5147,7 +5147,7 @@ Function UpdateEvents()
 						EndIf
 						
 						If e\EventState=1 Then
-							If EntityDistance(Collider, e\room\Objects[3])<1.2 
+							If EntityDistance(Collider, e\room\Objects[3])<1.2 And (Not NoTarget) 
 								If EntityInView(e\room\NPC[0]\obj, Camera) Then
 									GiveAchievement(Achv035)
 									PlaySound_Strict(LoadTempSound("SFX\SCP\035\GetUp.ogg"))
@@ -6340,7 +6340,7 @@ Function UpdateEvents()
 						EndIf
 						
 						If e\room\NPC[0]<>Null
-							If e\room\NPC[0]\State = 0 Or EntityDistance(Collider, e\room\NPC[0]\Collider)>HideDistance Then
+							If (e\room\NPC[0]\State = 0 Or EntityDistance(Collider, e\room\NPC[0]\Collider)>HideDistance) And (Not NoTarget) Then
 								e\EventState3 = e\EventState3 + (1+CurrSpeed)* FPSfactor
 								If (e\EventState3 Mod 500) < 10.0 And ((e\EventState3-(1+CurrSpeed)*FPSfactor) Mod 500) > 490.0 Then
 									;If e\EventState3 > 3500 And Rnd(10000)<e\EventState3 Then
@@ -6941,7 +6941,7 @@ Function UpdateEvents()
 								e\EventState = Max(e\EventState, 70*12)
 							ElseIf dist > 1.4
 								;if the player moves a bit further and blinks, 173 attacks
-								If e\EventState > 70*12 And BlinkTimer =< -10 Then
+								If e\EventState > 70*12 And BlinkTimer =< -10 And (Not NoTarget) Then
 									If (EntityDistance(Curr173\Collider, e\room\Objects[0]) > 5.0) Then
 										;if 173 is far away from the room (perhaps because the player 
 										;left and 173 moved to some other room?) -> disable the event
@@ -7028,7 +7028,7 @@ Function UpdateEvents()
 							If e\EventState2=0 Then
 								ShowEntity e\room\Objects[2]
 								If EntityDistance(Curr173\Collider,e\room\Objects[4])<3.0
-									If (BlinkTimer<-10 Or (Not EntityInView(Curr173\obj,Camera))) And Curr173\Idle = 0 Then
+									If (BlinkTimer<-10 Or (Not EntityInView(Curr173\obj,Camera))) And Curr173\Idle = 0 And (Not NoTarget) Then
 										PositionEntity Curr173\Collider, EntityX(e\room\Objects[4],True),0.5,EntityZ(e\room\Objects[4],True),True
 										ResetEntity Curr173\Collider
 										

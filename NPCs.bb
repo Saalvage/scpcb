@@ -3248,7 +3248,7 @@ Function UpdateNPCs()
 							EndIf
 							n\SoundChn2 = LoopSound2(n\Sound2,n\SoundChn2,Camera,n\Collider)
 							
-							If dist < 1.8 Then 
+							If dist < 1.8 And (Not NoTarget) Then 
 								If Abs(DeltaYaw(n\Collider, Collider))<20 Then 
 									n\State = 2
 									If n\Sound<>0 Then FreeSound_Strict n\Sound : n\Sound = 0 
@@ -3281,7 +3281,7 @@ Function UpdateNPCs()
 								AnimateNPC(n, 2, 32, 0.3, False)
 								;Animate2(n\obj, AnimTime(n\obj), 2, 32, 0.3, False)
 								
-								If n\Frame>=5 And n\Frame<6 Then
+								If n\Frame=5 Then
 									If dist < 1.8 Then
 										If Abs(DeltaYaw(n\Collider, Collider))<20 Then 
 											If WearingHazmat Then
@@ -3467,7 +3467,7 @@ Function UpdateNPCs()
 								EndIf
 								
 								If n\State2 = 0 Then ;don't start moving until the player is looking
-									If EntityInView(n\Collider, Camera) Then 
+									If EntityInView(n\Collider, Camera) And (Not NoTarget) Then 
 										n\State2 = 1
 										If Rand(8)=1 Then
 											PlaySound2(LoadTempSound("SFX\SCP\860\Cancer"+Rand(0,2)+".ogg"), Camera, n\Collider, 20.0)
@@ -3531,7 +3531,7 @@ Function UpdateNPCs()
 											
 											DebugLog(TFormedX()+", "+TFormedZ())
 											
-											If EntityInView(n\Collider, Camera) Then
+											If EntityInView(n\Collider, Camera) And (Not NoTarget) Then
 												BlinkTimer=-10
 											Else
 												x2 = gridsize
@@ -3552,7 +3552,7 @@ Function UpdateNPCs()
 								
 								If n\State2 = 0 Then
 									If dist<8.0 Then
-										If EntityInView(n\Collider,Camera) Then
+										If EntityInView(n\Collider,Camera) And (Not NoTarget) Then
 											PlaySound_Strict LoadTempSound("SFX\SCP\860\Chase"+Rand(1,2)+".ogg")
 											
 											PlaySound2(LoadTempSound("SFX\SCP\860\Cancer"+Rand(0,2)+".ogg"), Camera, n\Collider)	
@@ -3561,7 +3561,7 @@ Function UpdateNPCs()
 									EndIf
 								EndIf
 								
-								If CurrSpeed > 0.03 Then ;the player is running
+								If CurrSpeed > 0.03 And (Not NoTarget) Then ;the player is running
 									n\State3 = n\State3 + FPSfactor
 									If Rnd(5000/FPSfactor)<n\State3 Then
 										temp = True
@@ -3607,7 +3607,7 @@ Function UpdateNPCs()
 							If n\Sound2 = 0 Then n\Sound2 = LoadSound_Strict("SFX\General\Slash2.ogg")
 							
 							;if close enough to attack OR already attacking, play the attack anim
-							If (dist<1.1 Or (n\Frame>451 And n\Frame<493) Or KillTimer < 0) Then
+							If (dist<1.1 Or (n\Frame>451 And n\Frame<493) Or KillTimer < 0) And (Not NoTarget) Then
 								DeathMSG = ""
 								
 								n\CurrSpeed = CurveValue(0.0, n\CurrSpeed, 5.0)
