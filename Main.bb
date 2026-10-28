@@ -5080,7 +5080,7 @@ Function MouseLook(handleInput% = True)
 	EndIf
 
 	If WearingPumpkin Then
-		If Not EntityExist(PumpkinOverlay) Then
+		If PumpkinOverlay = 0 Then
 			PumpkinTexture = LoadTexture_Strict("GFX\Halloween\PumpkinOverlay.png", 1)
 			PumpkinOverlay = CreateSprite(ark_blur_cam)
 			ScaleSprite(PumpkinOverlay, 1.0, Max(Float(GraphicHeight) / Float(GraphicWidth), 0.8))
@@ -9720,6 +9720,7 @@ Function NullGame(playbuttonsfx%=True)
 	WearingVest = 0
 	Wearing714 = 0
 	WearingPumpkin = 0
+	PumpkinOverlay = 0
 	If WearingNightVision Then
 		CameraFogFar = StoredCameraFogFar
 		WearingNightVision = 0
