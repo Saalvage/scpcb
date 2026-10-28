@@ -319,6 +319,8 @@ Function CreateItem.Items(name$, x#, y#, z#)
 		i\Inventory = New Inventories
 		i\Inventory\Size = 10
 		SetAnimTime i\model,0.0
+	ElseIf name="scp330" then
+		i\state = 1 Shl Rand(0, 2)
 	EndIf
 	
 	i\ID=LastItemID+1
@@ -458,10 +460,10 @@ Function UpdateItems()
 					i\zspeed = 0.0
 				Else
 					If ShouldEntitiesFall
-						pick = LinePick(EntityX(i\collider),EntityY(i\collider),EntityZ(i\collider),0,-10,0)
+						pick = LinePick(EntityX(i\collider, True),EntityY(i\collider, True),EntityZ(i\collider, True),0,-10,0)
 						If pick
 							i\DropSpeed = i\DropSpeed - 0.0004 * FPSfactor
-							TranslateEntity i\collider, i\xspeed*FPSfactor, i\DropSpeed * FPSfactor, i\zspeed*FPSfactor
+							TranslateEntity i\collider, i\xspeed*FPSfactor, i\DropSpeed * FPSfactor, i\zspeed*FPSfactor, True
 						Else
 							i\DropSpeed = 0
 							i\xspeed = 0.0
@@ -494,8 +496,8 @@ Function UpdateItems()
 										ztemp = ztemp+Rnd(-0.002,0.002)
 									Wend
 									
-									TranslateEntity i2\collider,xtemp,0,ztemp
-									TranslateEntity i\collider,-xtemp,0,-ztemp
+									TranslateEntity i2\collider,xtemp,0,ztemp,True
+									TranslateEntity i\collider,-xtemp,0,-ztemp,True
 								EndIf
 							EndIf
 						EndIf
@@ -549,14 +551,16 @@ Function UpdateItems()
 
 						If r = Null Then
 							r = CreateRoom(0, ROOM1, 0, 1000, 128, 0, "halloweenfields")
+							SetupTriggerBoxes(r)
 							Teleport(r)
 							CreateEvent("halloweenfields","halloweenfields",0)
 						EndIf
-						PositionEntity(Collider, r\x + 18, r\y + 0.5, r\z + 18)
+						PositionEntity(Collider, r\x + 8, r\y + 0.5, r\z + 14)
+						RotateEntity(Collider, 0, -80, 0)
 						ResetEntity(Collider)
 
 						Local it.Items = CreateItem("pumpkin", r\x - 14.7, r\y + 0.5, r\z + 5.0)
-						it\State2 = True
+						it\State = -1
 						RotateEntity(it\collider, 0, r\angle+130, 0)
 						EntityParent(it\collider, r\obj)
 
@@ -609,7 +613,8 @@ Function UpdateItems()
 						EndIf
 
 						If r = Null Then
-							r = CreateRoom(0, ROOM1, -8, 1500, 128, 0, "halloweenpd")
+							r = CreateRoom(0, ROOM1, 8, 1500, 128, 0, "halloweenpd")
+							SetupTriggerBoxes(r)
 							Teleport(r)
 							CreateEvent("halloweenpd","halloweenpd",0)
 						EndIf
@@ -764,15 +769,14 @@ Function PickItem(item.Items)
 						EndIf
 					Case "scp330"
 						If SteamActive Then Steam_SetStatInt("has_grabbed_candy", 1)
-						If item\state < 2 Then
-							item\state = item\state + 1
+						If PopCount(item\state) < 3 Then
 							Local candyStart% = Rand(0, 2), candy%, candyMask%
 							For i% = 0 To 2
 								candy = (candyStart + i) Mod 3
 								candyMask = 1 Shl candy
-								If Not (item\state2 And candyMask) Then Exit
+								If Not (item\state And candyMask) Then Exit
 							Next
-							item\state2 = item\state2 Or candyMask
+							item\state = item\state Or candyMask
 							Select candy
 								Case 0
 									item = CreateItem("eyecandy", 0, 0, 0)
@@ -797,6 +801,17 @@ Function PickItem(item.Items)
 							BlurTimer = 10 * 70
 							CameraShake = 3
 							LostHands = True
+							If Wearing714 Then
+								For n% = 0 To MaxItemAmount-1
+									If Inventory(n) <> Null And Inventory(n)\itemtemplate\name = "scp714" Then
+										Local it.Items = Inventory(n)
+										DropItem(it)
+										PositionEntity(it\collider, EntityX(item\collider, True), EntityY(item\collider, True), EntityZ(item\collider, True), True)
+										Exit
+									EndIf
+								Next
+								Wearing714 = False
+							EndIf
 							DeathMSG = "Subject D-9341 found deceased with both hands severed near [REDACTED], where SCP-330 was recovered. Presumed fatal interaction with the object."
 							PlaySound_Strict(LoadTempSound("SFX\General\Slash1.ogg"))
 							FreeEntity(pvt)
@@ -858,10 +873,10 @@ Function DropItem(item.Items,playdropsound%=True)
 	item\Dropped = 1
 	
 	ShowEntity(item\collider)
-	PositionEntity(item\collider, EntityX(Camera), EntityY(Camera), EntityZ(Camera))
-	RotateEntity(item\collider, EntityPitch(Camera), EntityYaw(Camera)+Rnd(-20,20), 0)
-	MoveEntity(item\collider, 0, -0.1, 0.1)
-	RotateEntity(item\collider, 0, EntityYaw(Camera)+Rnd(-110,110), 0)
+	PositionEntity(item\collider, EntityX(Camera), EntityY(Camera), EntityZ(Camera), True)
+	RotateEntity(item\collider, EntityPitch(Camera), EntityYaw(Camera)+Rnd(-20,20), 0, True)
+	MoveEntity(item\collider, 0, -0.1, 0.1, True)
+	RotateEntity(item\collider, 0, EntityYaw(Camera)+Rnd(-110,110), 0, True)
 	
 	ResetEntity (item\collider)
 	

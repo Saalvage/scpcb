@@ -3325,7 +3325,7 @@ While IsRunning
 		
 		If FPSfactor > 0 And PlayerRoom\RoomTemplate\Name <> "dimension1499" Then UpdateSecurityCams()
 		
-		If PlayerRoom\RoomTemplate\Name <> "pocketdimension" And PlayerRoom\RoomTemplate\Name <> "gatea" And PlayerRoom\RoomTemplate\Name <> "exit1" And PlayerRoom\RoomTemplate\Name <> "halloweenfields" And (Not IsAnyMenuOpen()) Then 
+		If PlayerRoom\RoomTemplate\Name <> "pocketdimension" And PlayerRoom\RoomTemplate\Name <> "gatea" And PlayerRoom\RoomTemplate\Name <> "exit1" And PlayerRoom\RoomTemplate\Name <> "halloweenpd" And (Not IsAnyMenuOpen()) Then 
 			
 			If Rand(1500/FPSfactor) = 1 Then
 				For i = 0 To 5
@@ -3351,6 +3351,9 @@ While IsRunning
 							Exit
 						EndIf
 					Next
+				ElseIf PlayerRoom\RoomTemplate\Name = "halloweenfields"
+					PlayerZone = 5
+					PositionEntity (SoundEmitter, EntityX(SoundEmitter), EntityY(Camera), EntityZ(SoundEmitter))
 				EndIf
 				
 				CurrAmbientSFX = Rand(0,AmbientSFXAmount(PlayerZone)-1)
@@ -3780,6 +3783,7 @@ While IsRunning
 				Case 102 newAreaStr = "GateA"
 				Case 103 newAreaStr = "GateB"
 				Case 104 newAreaStr = "MT"
+				Case 666 newAreaStr = "Halloween"
 			End Select
 			Steam_SetRichPresence("gamestatus", newAreaStr)
 			SteamLastStatus = PlayerArea
@@ -3817,6 +3821,7 @@ While IsRunning
 					Case 102 newAreaStr = "Escaping through Gate A"
 					Case 103 newAreaStr = "Escaping through Gate B"
 					Case 104 newAreaStr = "Lost in the Maintenance Tunnels"
+					Case 666 newAreaStr = "Enjoying the Halloween spirit"
 				End Select
 				BlitzcordSetActivityDetails(newAreaStr)
 				BlitzcordUpdateActivity()
@@ -3858,6 +3863,7 @@ Function GetCurrentPlayerArea%()
 		Case "gatea" Return 102
 		Case "exit1" Return 103
 		Case "room2tunnel" If EntityY(Collider,True)>4.0 Then Return 104
+		Case "halloweenpd", "halloweenfields" Return 666
 		Default Return PlayerZone
 	End Select
 End Function
@@ -4292,7 +4298,7 @@ Function DrawEnding()
 					Local roomamount = 0, roomsfound = 0
 					For r.Rooms = Each Rooms
 						Local RN$ = r\RoomTemplate\Name$
-						If RN$ <> "dimension1499" And RN$ <> "gatea" And RN$ <> "pocketdimension" And RN$ <> "halloweenfields" Then 
+						If RN$ <> "dimension1499" And RN$ <> "gatea" And RN$ <> "pocketdimension" And RN$ <> "halloweenfields" And RN$ <> "halloweenpd" Then 
 							roomamount = roomamount + 1
 							roomsfound = roomsfound + r\found
 						EndIf
@@ -5095,8 +5101,9 @@ Function MouseLook(handleInput% = True)
 			Case HARD
 				lifeTime = 2 * 60 * 70
 		End Select
-		For it.Items = Each Items
-			If it\itemtemplate\name <> "pumpkin" Lor (Not it\Picked) Then Continue
+		For i% = 0 To MaxItemAmount - 1
+			Local it.Items = Inventory(i)
+			If it\itemtemplate\name <> "pumpkin" Then Continue
 			If it\state < lifeTime / 2 And it\state + FPSfactor >= lifeTime / 2 Then
 				Msg = "The pumpkin mask is starting to rot."
 				MsgTimer = 5 * 70
@@ -5290,7 +5297,7 @@ Function DrawGUI()
 			EndIf
 			; Shaking from pain
 			If LostHands Then
-				CameraShake = 1
+				CameraShake = 2
 			EndIf
 		EndIf
 	EndIf
@@ -6614,7 +6621,7 @@ Function DrawGUI()
 					DrawImage(SelectedItem\itemtemplate\img, x, y)
 					
 					If SelectedItem\state > 0 Then
-						If PlayerRoom\RoomTemplate\Name = "pocketdimension" Or CoffinDistance < 4.0 Then
+						If PlayerRoom\RoomTemplate\Name = "pocketdimension" Lor PlayerRoom\RoomTemplate\Name = "halloweenpd" Lor CoffinDistance < 4.0 Then
 							ResumeChannelWithSubtitles(RadioCHN(5))
 							If ChannelPlaying(RadioCHN(5)) = False Then RadioCHN(5) = PlaySound_Strict(RadioStatic)	
 						Else
@@ -6978,10 +6985,12 @@ Function DrawGUI()
 					If Wearing714=1 Then
 						Msg = I_Loc\MessageItem_Scp714Off
 						Wearing714 = False
-					Else
+					Else If Not LostHands
 						GiveAchievement(Achv714)
 						Msg = I_Loc\MessageItem_Scp714On
 						Wearing714 = True
+					Else
+						Msg = "You don't have any fingers to put the ring on."
 					EndIf
 					MsgTimer = 70 * 5
 					SelectedItem = Null	
@@ -7105,7 +7114,7 @@ Function DrawGUI()
 					SetFont Font3
 					
 					Local NavWorks% = True
-					If PlayerRoom\RoomTemplate\Name$ = "pocketdimension" Or PlayerRoom\RoomTemplate\Name$ = "dimension1499" Then
+					If PlayerRoom\RoomTemplate\Name$ = "pocketdimension" Lor PlayerRoom\RoomTemplate\Name$ = "halloweenpd" Lor PlayerRoom\RoomTemplate\Name$ = "halloweenfields" Lor PlayerRoom\RoomTemplate\Name$ = "dimension1499" Then
 						NavWorks% = False
 					ElseIf PlayerRoom\RoomTemplate\Name$ = "room860" Then
 						For e.Events = Each Events
@@ -7581,8 +7590,8 @@ Function DrawGUI()
 						If WearingPumpkin Then
 							Msg = "You took off the pumpkin mask."
 						Else
-							If SelectedItem\State2 Then
-								SelectedItem\State2 = 0
+							If SelectedItem\state < 0 Then
+								SelectedItem\state = 0
 								If PlayerRoom\RoomTemplate\Name = "halloweenfields" Then
 									If TeleportFromHalloweenRoom() Then PlaySound_Strict(HorrorSFX(11))
 								EndIf
@@ -7601,6 +7610,7 @@ Function DrawGUI()
 					;[End Block]
 				Case "boneflute"
 					;[Block]
+					PlaySound_Strict(LoadTempSound("SFX\Halloween\deathwhistle.ogg"))
 					If PlayerRoom\RoomTemplate\Name = "pocketdimension" Lor PlayerRoom\RoomTemplate\Name = "halloweenpd" Then
 						PlaySound_Strict(OldManSFX(3))
 					Else
@@ -11502,7 +11512,7 @@ Function UpdateInfect()
 				Exit
 			EndIf
 		Next
-	ElseIf PlayerRoom\RoomTemplate\Name = "dimension1499" Or PlayerRoom\RoomTemplate\Name = "pocketdimension" Or PlayerRoom\RoomTemplate\Name = "gatea"
+	ElseIf PlayerRoom\RoomTemplate\Name = "dimension1499" Lor PlayerRoom\RoomTemplate\Name = "pocketdimension" Lor PlayerRoom\RoomTemplate\Name = "halloweenpd" Lor PlayerRoom\RoomTemplate\Name = "halloweenfields" Lor PlayerRoom\RoomTemplate\Name = "gatea"
 		teleportForInfect = False
 	ElseIf PlayerRoom\RoomTemplate\Name = "exit1" And EntityY(Collider)>1040.0*RoomScale
 		teleportForInfect = False
@@ -11754,6 +11764,15 @@ End Function
 
 Function Unlerp#(a#, b#, f#)
 	Return (f - a) / (b - a)
+End Function
+
+Function PopCount%(value%)
+	Local cnt% = 0
+	While value <> 0
+		If value And 1 Then cnt = cnt + 1
+		value = value Shr 1
+	Wend
+	Return cnt
 End Function
 
 ;--------------------------------------- decals -------------------------------------------------------

@@ -3046,7 +3046,7 @@ Function UpdateEvents()
 					EndIf
 				EndIf
 				
-				If PlayerRoom\RoomTemplate\Name <> "pocketdimension" And PlayerRoom\RoomTemplate\Name <> "room860" Then
+				If PlayerRoom\RoomTemplate\Name <> "pocketdimension" And PlayerRoom\RoomTemplate\Name <> "room860" And PlayerRoom\RoomTemplate\Name <> "halloweenpd" And PlayerRoom\RoomTemplate\Name <> "halloweenfields" Then
 					If e\EventState2 = 0 Then
 						If e\EventState3 <=0 Then 
 							temp = False
@@ -6070,7 +6070,7 @@ Function UpdateEvents()
 						RotateEntity(e\room\Objects[6], 0, EntityYaw(e\room\Objects[6],True), 0, True)
 					EndIf
 				Else
-					If PlayerRoom\RoomTemplate\Name = "pocketdimension" Or PlayerRoom\RoomTemplate\Name = "dimension1499" Then
+					If PlayerRoom\RoomTemplate\Name = "pocketdimension" Lor PlayerRoom\RoomTemplate\Name = "dimension1499" Lor PlayerRoom\RoomTemplate\Name = "halloweenpd" Lor PlayerRoom\RoomTemplate\Name = "halloweenfields" Then
 						If (e\SoundCHN2<>0) Then
 							If ChannelPlaying(e\SoundCHN2) Then StopChannel e\SoundCHN2
 						EndIf
@@ -7217,7 +7217,7 @@ Function UpdateEvents()
 				;[Block]
 				If e\EventState = 0 Then
 					If PlayerRoom = e\room Then e\EventState = 70 * Rand(300,1000)
-				ElseIf PlayerRoom\RoomTemplate\Name <> "pocketdimension" And PlayerRoom\RoomTemplate\Name <> "room860" And PlayerRoom\RoomTemplate\Name <> "room1123" And PlayerRoom\RoomTemplate\Name <> "dimension1499" 
+				ElseIf PlayerRoom\RoomTemplate\Name <> "pocketdimension" And PlayerRoom\RoomTemplate\Name <> "room860" And PlayerRoom\RoomTemplate\Name <> "room1123" And PlayerRoom\RoomTemplate\Name <> "dimension1499" And PlayerRoom\RoomTemplate\Name <> "halloweenpd" And PlayerRoom\RoomTemplate\Name <> "halloweenfields"
 					e\EventState = e\EventState-FPSfactor
 					
 					If e\EventState < 17*70 Then
@@ -8533,13 +8533,25 @@ Function UpdateEvents()
 					Next
 
 					ShouldPlay = 9
-					CurrStepSFX = 2
 
-					If Not DebugHUD Then
-						CameraClsColor Camera,191, 133, 67
-						CameraFogColor Camera,191, 133, 67
-						TempLightVolume = TempLightVolume*1.5
+					TFormPoint(EntityX(Collider), EntityY(Collider), EntityZ(Collider), 0, e\room\Objects[1])
+					Local tx# = TFormedX(), tz# = TFormedZ()
+					Local isInBarn% = Abs(tx) < 884.5 And Abs(tz) < 758
+
+					If isInBarn Then
+						If Rand(60 * 15 / FPSfactor) = 1 Then PositionEntity(e\room\Objects[2], Rnd(-884.5, 884.5), 1, Rnd(-758, 758)) : PlaySound2(LoadTempSound("SFX\Room\Halloween\Barn\BarnCreak" + Rand(5) + ".ogg"), Camera, e\room\Objects[2], 10, 2)
+						If Rand(60 * 30 / FPSfactor) = 1 Then PositionEntity(e\room\Objects[2], Rnd(-884.5, 884.5), 1, Rnd(-758, 758)) : PlaySound2(LoadTempSound("SFX\Room\Halloween\Barn\BarnSteps" + Rand(3) + ".ogg"), Camera, e\room\Objects[2], 10, 2)
+						If Rand(60 * 90 / FPSfactor) = 1 Then PositionEntity(e\room\Objects[2], Rnd(-884.5, 884.5), 1, Rnd(-758, 758)) : PlaySound2(LoadTempSound("SFX\Room\Halloween\Barn\BarnCough.ogg"), Camera, e\room\Objects[2], 10, 2)
+
+						e\EventState = CurveValue(1, e\EventState, 10)
+					Else
+						CurrStepSFX = 2
+
+						e\EventState = CurveValue(0, e\EventState, 10)
 					EndIf
+					CameraClsColor Camera,Lerp(191, 0, e\EventState), Lerp(133, 0, e\EventState), Lerp(67, 0, e\EventState)
+					CameraFogColor Camera,Lerp(191, 0, e\EventState), Lerp(133, 0, e\EventState), Lerp(67, 0, e\EventState)
+					TempLightVolume = TempLightVolume*1.5
 
 					If (Not NoClip) And EntityY(Collider) - EntityY(e\room\obj, True) > 0.6 Then
 						MoveEntity(Collider, 0, -0.1 * FPSfactor, 0)

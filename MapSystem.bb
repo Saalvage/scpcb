@@ -578,7 +578,7 @@ Function ReadMesh%(file$, f%, blankTexture%, Alpha%, Opaque%, coll% = True)
 				Local flags% = 1
 				If temp1i=>3 Then flags = 3
 				tex[j]=LoadTexture(file+temp1s,flags)
-				If tex[j] = 0 Then tex[j] = LoadTexture("GFX\map\" + temp1s,1)
+				If tex[j] = 0 Then tex[j] = LoadTexture("GFX\map\" + temp1s,flags)
 				
 				If tex[j]<>0 Then
 					If temp1i=1 Then TextureBlend tex[j],5
@@ -5487,7 +5487,6 @@ Function FillRoom(r.Rooms)
 			;[End Block]
 		Case "room4info"
 			it = CreateItem("scp330", r\x + 1.2, r\y + 0.56, r\z - 2.8)
-			it\state2 = 1 Shl Rand(0, 2)
 			EntityParent(it\collider, r\obj)
 		Case "halloweenfields"
 			Local hmap% = LoadTexture_Strict("GFX\map\halloween\fields.png", hmapFlags)
@@ -5496,7 +5495,7 @@ Function FillRoom(r.Rooms)
 			Local GroundTexture = LoadTexture_Strict("GFX\map\forest\forestfloor.jpg")
 			Local PathTexture = LoadTexture_Strict("GFX\map\forest\forestpath.jpg")
 			
-			Local terr% = load_terrain(hmap, 0.05, GroundTexture, PathTexture, mask, 1, 16)
+			Local terr% = load_terrain(hmap, 0.05, GroundTexture, PathTexture, mask, 1, 16, 1)
 
 			Local pumpkin% = LoadMesh_Strict("GFX\map\halloween\pumpkin.b3d")
 			EntityEffect(pumpkin, InstanceEffect)
@@ -5529,6 +5528,12 @@ Function FillRoom(r.Rooms)
 
 			EntityParent(terr, r\obj, False)
 			r\Objects[0] = terr
+
+			r\Objects[1] = CreatePivot(r\obj)
+			PositionEntity(r\Objects[1], 4640, 0, 4400)
+			RotateEntity(r\Objects[1], 0, 24.65, 0)
+
+			r\Objects[2] = CreatePivot(r\Objects[1])
 
 			r\Objects[10] = CreatePivot(r\obj)
 			PositionEntity(r\Objects[10], 0.8 / RoomScale, 0.5 / RoomScale, 6 / RoomScale)
@@ -5748,7 +5753,7 @@ Function UpdateRooms()
 	Next
 	
 	Local mapX = Floor(EntityX(PlayerRoom\obj) / 8.0), mapZ = Floor(EntityZ(PlayerRoom\obj) / 8.0)
-	If mapX <= MapWidth And mapZ <= MapHeight Then MapFound(mapX, mapZ) = 1
+	If mapX >= 0 And mapZ >= 0 And mapX <= MapWidth And mapZ <= MapHeight Then MapFound(mapX, mapZ) = 1
 	PlayerRoom\found = True
 	
 	TempLightVolume = Max(TempLightVolume / 4.5, 1.0)
@@ -7872,7 +7877,7 @@ End Function
 ;-------------------------------------------------------------------------------------------------------
 
 
-Function load_terrain(hmap,yscale#=0.7,t1%,t2%,mask%,mask_off%=5,texture_scale#=4.0)
+Function load_terrain(hmap,yscale#=0.7,t1%,t2%,mask%,mask_off%=5,texture_scale#=4.0,maskZoom#=2.0)
 	
 	DebugLog "load_terrain: "+hmap
 	
@@ -7887,9 +7892,6 @@ Function load_terrain(hmap,yscale#=0.7,t1%,t2%,mask%,mask_off%=5,texture_scale#=
 	If t1 = 0 Then RuntimeErrorExt "load_terrain error: invalid texture 1"
 	If t2 = 0 Then RuntimeErrorExt "load_terrain error: invalid texture 2"
 	If mask = 0 Then RuntimeErrorExt "load_terrain error: invalid texture mask"
-	
-	; fuck
-	Local maskZoom# = 1.0
 	
 	; offset to keep centered
 	Local maskW = TextureWidth(mask)

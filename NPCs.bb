@@ -786,7 +786,7 @@ Function UpdateNPCs()
 								;more than 6 room lengths away from the player -> teleport to a room closer to the player
 								If dist > 50 Then
 									If Rand(70/FPSfactor)=1 Then
-										If PlayerRoom\RoomTemplate\Name <> "exit1" And PlayerRoom\RoomTemplate\Name <> "gatea" And PlayerRoom\RoomTemplate\Name <> "pocketdimension" Then
+										If PlayerRoom\RoomTemplate\Name <> "exit1" And PlayerRoom\RoomTemplate\Name <> "gatea" And PlayerRoom\RoomTemplate\Name <> "pocketdimension" And PlayerRoom\RoomTemplate\Name <> "halloweenpd" And PlayerRoom\RoomTemplate\Name <> "halloweenfields" Then
 											For w.waypoints = Each WayPoints
 												If w\door=Null And Rand(5)=1 Then
 													x = Abs(EntityX(Collider)-EntityX(w\obj,True))
@@ -971,6 +971,7 @@ Function UpdateNPCs()
 					Local spawn106% = True
 					;checking if 106 is allowed to spawn
 					If PlayerRoom\RoomTemplate\Name$ = "dimension1499" Then spawn106% = False
+					If PlayerRoom\RoomTemplate\Name$ = "halloweenfields" Then spawn106% = False
 					For e.Events = Each Events
 						If e\EventName = "room860"
 							If e\EventState = 1
@@ -1066,7 +1067,7 @@ Function UpdateNPCs()
 								End If
 								
 								Local isAtGate% = PlayerRoom\RoomTemplate\Name = "gatea"
-								Local isInPd% = PlayerRoom\RoomTemplate\Name = "pocketdimension"
+								Local isInPd% = PlayerRoom\RoomTemplate\Name = "pocketdimension" Lor PlayerRoom\RoomTemplate\Name = "halloweenpd"
 								If dist > 0.8 Lor isAtGate Then
 									If (dist > 25.0 Or isInPd Or Visible Or n\PathStatus <> 1) And (Not isAtGate) And (Not NoTarget) Then 
 										
@@ -1169,7 +1170,7 @@ Function UpdateNPCs()
 										If Ceil(n\Frame) = 110 And (Not GodMode) Then
 											PlaySound_Strict(DamageSFX(1))
 											PlaySound_Strict(HorrorSFX(5))											
-											If PlayerRoom\RoomTemplate\Name = "pocketdimension" Then
+											If isInPd Then
 												DeathMSG = I_Loc\DeathMessage_106Pd
 												Kill()
 											Else
@@ -1250,7 +1251,7 @@ Function UpdateNPCs()
 						RotateEntity(n\obj2, 0, EntityYaw(n\Collider) - 180, 0)
 						MoveEntity(n\obj2, 0, 8.6 * 0.11, -1.5 * 0.11)
 						
-						If PlayerRoom\RoomTemplate\Name = "pocketdimension" Or PlayerRoom\RoomTemplate\Name = "gatea" Then
+						If PlayerRoom\RoomTemplate\Name = "pocketdimension" Lor PlayerRoom\RoomTemplate\Name = "halloweenpd" Lor PlayerRoom\RoomTemplate\Name = "gatea" Then
 							HideEntity n\obj2
 						Else
 							If dist < CameraFogFar*LightVolume*0.6 Then
@@ -2822,7 +2823,7 @@ Function UpdateNPCs()
 				;[Block]
 				;If KeyHit(48) Then n\Idle = True : n\State2 = 0
 				
-				If PlayerRoom\RoomTemplate\Name <> "pocketdimension" Then 
+				If PlayerRoom\RoomTemplate\Name <> "pocketdimension" And PlayerRoom\RoomTemplate\Name <> "halloweenpd" Then 
 					If n\Idle Then
 						HideEntity(n\obj)
 						HideEntity(n\obj2)
@@ -2996,7 +2997,7 @@ Function UpdateNPCs()
 			Case NPCtype372 ;------------------------------------------------------------------------------------------------------------------
 				;[Block]
 				RN$ = PlayerRoom\RoomTemplate\Name
-				If RN$ <> "pocketdimension" And RN$ <> "dimension1499" Then 
+				If RN$ <> "pocketdimension" And RN$ <> "halloweenpd" And RN$ <> "halloweenfields" And RN$ <> "dimension1499" Then 
 					If n\Idle Then
 						HideEntity(n\obj)
 						If Rand(50/FPSfactor) = 1 And (BlinkTimer < -5 And BlinkTimer > -15) Then
@@ -3281,7 +3282,7 @@ Function UpdateNPCs()
 								AnimateNPC(n, 2, 32, 0.3, False)
 								;Animate2(n\obj, AnimTime(n\obj), 2, 32, 0.3, False)
 								
-								If n\Frame=5 Then
+								If n\Frame>=5 And n\Frame<6 Then
 									If dist < 1.8 Then
 										If Abs(DeltaYaw(n\Collider, Collider))<20 Then 
 											If WearingHazmat Then
@@ -7556,7 +7557,7 @@ Function PlayerInReachableRoom(canSpawnIn049Chamber%=False)
 	Local e.Events, temp
 	
 	;Player is in these rooms, returning false
-	If RN = "pocketdimension" Or RN = "gatea" Or RN = "dimension1499" Or RN = "173" Or RN = "halloweenfields" Then
+	If RN = "pocketdimension" Lor RN = "gatea" Lor RN = "dimension1499" Lor RN = "173" Lor RN = "halloweenfields" Lor RN = "halloweenpd" Then
 		Return False
 	EndIf
 	;Player is at GateB and is at the surface, returning false
@@ -7706,16 +7707,16 @@ Function ChangeNPCTextureID(n.NPCs,textureid%)
 			n\obj = LoadAnimMesh_Strict("GFX\npcs\Halloween\jell066.b3d")
 			Local temp# = GetModdedINIFloat("DATA\NPCs.ini", "SCP-066", "scale")/2.5
 			ScaleEntity n\obj, temp, temp, temp
-			n\NVName = I_Loc\NPC_Unidentified
 		EndIf
+		n\NVName = I_Loc\NPC_Unidentified
 		n\ManipulationType = FindChild(n\obj, GetModdedINIString(NPCBones, "SCP-066", "item_bonename"))
 	ElseIf n\NPCtype = NPCtype939 And n\TextureID = 1 Then
 		If Not CopyExistingNPCTextureIDObj(n) Then
 			n\obj = LoadAnimMesh_Strict("GFX\npcs\Halloween\pumpkinmonster.b3d")
 			temp# = (GetModdedINIFloat("DATA\NPCs.ini", "forestmonster", "scale") / 20.0)
 			ScaleEntity n\obj, temp, temp, temp
-			n\NVName = I_Loc\NPC_Unidentified
 		EndIf
+		n\NVName = I_Loc\NPC_Unidentified
 	Else
 		n\obj = CopyEntity(DTextures[textureid%+1])
 		
