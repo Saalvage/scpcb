@@ -91,12 +91,12 @@ Function UpdateEvents()
 						
 						If e\room\NPC[1] = Null Then
 							e\room\NPC[1] = CreateNPC(NPCtypeD, 0,0,0)
-							ChangeNPCTextureID(e\room\NPC[1],3)
+							ChangeNPCTextureID(e\room\NPC[1],4)
 							;tex = LoadTexture_Strict("GFX\npcs\scientist2.jpg")
 							e\room\NPC[1]\texture = "GFX\npcs\scientist2.jpg"
 							;EntityTexture e\room\NPC[1]\obj, tex
 							;FreeTexture tex
-							ChangeNPCTextureID(e\room\NPC[1],3)
+							ChangeNPCTextureID(e\room\NPC[1],4)
 						Else
 							EntityType e\room\NPC[1]\Collider, HIT_DEAD
 						EndIf
@@ -127,7 +127,7 @@ Function UpdateEvents()
 							MoveEntity e\room\NPC[4]\Collider,0,0,2.65
 							
 							e\room\NPC[5] = CreateNPC(NPCtypeD, EntityX(e\room\Objects[4], True), 0.5, EntityZ(e\room\Objects[4], True))
-							ChangeNPCTextureID(e\room\NPC[5],6)
+							ChangeNPCTextureID(e\room\NPC[5],7)
 							;PointEntity(e\room\NPC[5]\Collider, e\room\Objects[7])
 							SetNPCFrame(e\room\NPC[5], 19) : e\room\NPC[5]\State = 3
 							RotateEntity e\room\NPC[5]\Collider,0,270,0
@@ -785,7 +785,7 @@ Function UpdateEvents()
 								
 								e\room\NPC[2] = CreateNPC(NPCtypeD, EntityX(e\room\Objects[2], True), 0.5, EntityZ(e\room\Objects[2], True))
 								PointEntity(e\room\NPC[2]\Collider, e\room\Objects[5])
-								ChangeNPCTextureID(e\room\NPC[2],6)
+								ChangeNPCTextureID(e\room\NPC[2],7)
 								;EntityTexture e\room\NPC[2]\obj, DTextures[7]
 								;FreeTexture DTextures[7]
 								e\room\NPC[3]\State = 9								
@@ -956,13 +956,13 @@ Function UpdateEvents()
 								;tex = LoadTexture_Strict("GFX\npcs\scientist2.jpg")
 								;EntityTexture e\room\NPC[6]\obj, DTextures[4]
 								;FreeTexture tex
-								ChangeNPCTextureID(e\room\NPC[6],3)
+								ChangeNPCTextureID(e\room\NPC[6],4)
 								e\room\NPC[7] = CreateNPC(NPCtypeD, e\room\x-3712*RoomScale, -0.3, e\room\z-2208*RoomScale)
 								;tex = LoadTexture_Strict("GFX\npcs\scientist.jpg")
 								e\room\NPC[7]\Sound = LoadSound_Strict("SFX\Room\Intro\Scientist\Conversation.ogg")
 								;EntityTexture e\room\NPC[7]\obj, DTextures[3]
 								;FreeTexture tex
-								ChangeNPCTextureID(e\room\NPC[7],2)
+								ChangeNPCTextureID(e\room\NPC[7],3)
 								pvt = CreatePivot()
 								RotateEntity pvt,90,0,0
 								
@@ -1781,7 +1781,7 @@ Function UpdateEvents()
 								
 								e\room\NPC[0]=CreateNPC(NPCtypeD, EntityX(e\room\RoomDoors[0]\obj,True), 0.5, EntityZ(e\room\RoomDoors[0]\obj,True))
 								
-								ChangeNPCTextureID(e\room\NPC[0],4)
+								ChangeNPCTextureID(e\room\NPC[0],5)
 								
 								PointEntity e\room\NPC[0]\Collider, e\room\obj
 								RotateEntity e\room\NPC[0]\Collider, 0, EntityYaw(e\room\NPC[0]\Collider),0, True
@@ -2752,7 +2752,7 @@ Function UpdateEvents()
 					de.Decals = CreateDecal(3, EntityX(e\room\Objects[0],True), 0.0005, EntityZ(e\room\Objects[0],True),90,Rnd(360),0)
 					
 					e\room\NPC[0]=CreateNPC(NPCtypeD, EntityX(e\room\Objects[0],True), 0.5, EntityZ(e\room\Objects[0],True))
-					ChangeNPCTextureID(e\room\NPC[0],0)
+					ChangeNPCTextureID(e\room\NPC[0],1)
 					
 					RotateEntity e\room\NPC[0]\Collider, 0, EntityYaw(e\room\obj)-80,0, True	
 					
@@ -4636,10 +4636,8 @@ Function UpdateEvents()
 									e\room\NPC[1]=Null
 								EndIf
 							Case 60
-								If (Not HalloweenTex) Then
-									Local tex970 = LoadTexture_Strict("GFX\npcs\173h.pt", 1)
-									EntityTexture Curr173\obj, tex970, 0, 0
-									FreeTexture tex970
+								If Curr173\TextureID <> 1 Then
+									ChangeNPCTextureID(Curr173, 1)
 								EndIf
 						End Select
 						
@@ -7122,7 +7120,7 @@ Function UpdateEvents()
 							If e\room\NPC[0]=Null Then
 								e\room\NPC[0]=CreateNPC(NPCtypeD, EntityX(e\room\obj), 900.0*RoomScale, EntityZ(e\room\obj))
 								RotateEntity e\room\NPC[0]\Collider, 0, Rnd(360), 0, True
-								ChangeNPCTextureID(e\room\NPC[0],5)
+								ChangeNPCTextureID(e\room\NPC[0],6)
 								e\room\NPC[0]\State=6
 								
 								PlaySound_Strict HorrorSFX(0)
@@ -8449,7 +8447,7 @@ Function UpdateEvents()
 							MoveEntity e\room\NPC[0]\Collider,0,0,-0.5
 							e\room\NPC[0]\State = 3
 							e\room\NPC[0]\texture = "GFX\npcs\035victim.jpg"
-							ChangeNPCTextureID(e\room\NPC[0],7)
+							ChangeNPCTextureID(e\room\NPC[0],8)
 							SetNPCFrame(e\room\NPC[0],19)
 						EndIf
 						If e\room\NPC[1]=Null
@@ -8526,7 +8524,7 @@ Function UpdateEvents()
 							e\room\NPC[i]\State2 = startPos[i]
 							e\room\NPC[i]\PrevState = 17
 							e\room\NPC[i]\LastDist = 8
-							ChangeNPCTextureID(e\room\NPC[i], 0)
+							ChangeNPCTextureID(e\room\NPC[i], 1)
 						ElseIf e\room\NPC[i]\State = 66 Then
 							e\room\NPC[i]\State = 2
 						EndIf

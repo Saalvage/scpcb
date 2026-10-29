@@ -161,7 +161,6 @@ Global Fullscreen% = GetOptionInt("graphics", "fullscreen")
 Global ShowFPS = GetOptionInt("graphics", "show FPS")
 
 Global WireframeState
-Global HalloweenTex
 Global IsBirthday = Left(CurrentDate(), 7) = "15 Apr " Lor HasCLIFlag("birthday")
 Global IsHalloween = Left(CurrentDate(), 7) = "31 Oct " Lor HasCLIFlag("halloween")
 Global BirthdayHat = False
@@ -1283,17 +1282,12 @@ Function UpdateConsole()
 					;[End Block]
 				Case "halloween"
 					;[Block]
-					HalloweenTex = Not HalloweenTex
-					If HalloweenTex Then
-						Local tex = LoadTexture_Strict("GFX\npcs\Halloween\173h.pt", 1)
-						EntityTexture Curr173\obj, tex, 0, 0
-						FreeTexture tex
-						CreateConsoleMsg("173 JACK-O-LANTERN ON")
-					Else
-						Local tex2 = LoadTexture_Strict("GFX\npcs\173texture.jpg", 1)
-						EntityTexture Curr173\obj, tex2, 0, 0
-						FreeTexture tex2
+					If Curr173\TextureID = 1 Then
+						ChangeNPCTextureID(Curr173, 0)
 						CreateConsoleMsg("173 JACK-O-LANTERN OFF")
+					Else
+						ChangeNPCTextureID(Curr173, 1)
+						CreateConsoleMsg("173 JACK-O-LANTERN ON")
 					EndIf
 					;[End Block]
 				Case "sanic"
@@ -3952,7 +3946,7 @@ Function QuickLoadEvents()
 						e\room\NPC[0] = CreateNPC(NPCtypeD, EntityX(e\room\Objects[0],True),EntityY(e\room\Objects[0],True),EntityZ(e\room\Objects[0],True))
 					EndIf
 					
-					ChangeNPCTextureID(e\room\NPC[0],4)
+					ChangeNPCTextureID(e\room\NPC[0],5)
 					e\EventStr = "load1"
 				ElseIf e\EventStr = "load1"
 					QuickLoadPercent = 20
@@ -3968,7 +3962,7 @@ Function QuickLoadEvents()
 						e\room\NPC[1] = CreateNPC(NPCtypeD, EntityX(e\room\Objects[1],True),EntityY(e\room\Objects[1],True),EntityZ(e\room\Objects[1],True))
 					EndIf
 					
-					ChangeNPCTextureID(e\room\NPC[1],2)
+					ChangeNPCTextureID(e\room\NPC[1],4)
 					e\EventStr = "load4"
 				ElseIf e\EventStr = "load4"
 					QuickLoadPercent = 80
@@ -7509,7 +7503,7 @@ Function DrawGUI()
 							jello\State = 2
 							it = CreateItem("killbat", 0, 0, 0)
 							it\state = True
-							ChangeNPCTextureID(jello, 0)
+							ChangeNPCTextureID(jello, 1)
 							EntityParent(it\collider, jello\ManipulationType)
 							PositionEntity(it\collider, 0, 0, 0)
 							ResetEntity(it\collider)
@@ -11007,9 +11001,7 @@ Function Use914(item.Items, setting$, x#, y#, z#)
 					ResetEntity(item\collider)
 				Case "fine", "very fine"
 					n.NPCs = CreateNPC(NPCtype173,x,y,z)
-					Local texFestive = LoadTexture_Strict("GFX\npcs\173h.pt", 1)
-					EntityTexture n\obj, texFestive, 0, 0
-					FreeTexture texFestive
+					ChangeNPCTextureID(n, 1)
 					PlaySound2(LoadTempSound("SFX\ambient\general\ambient3.ogg"), Camera, n\Collider)
 					RemoveItem(item)
 			End Select

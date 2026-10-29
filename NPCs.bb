@@ -93,12 +93,8 @@ Function CreateNPC.NPCs(NPCtype%, x#, y#, z#)
 			
 			n\obj = LoadMesh_Strict("GFX\npcs\173_2.b3d")
 			
-			;On Halloween set jack-o-latern texture.
-			HalloweenTex = IsHalloween
-			If HalloWeenTex Then
-				Local texFestive = LoadTexture_Strict("GFX\npcs\173h.pt", 1)
-				EntityTexture n\obj, texFestive, 0, 0
-				FreeTexture texFestive
+			If IsHalloween Then
+				ChangeNPCTextureID(n, 1)
 			EndIf
 
 			If BirthdayHat Then
@@ -433,7 +429,7 @@ Function CreateNPC.NPCs(NPCtype%, x#, y#, z#)
 			EntityRadius n\Collider, 0.3
 			EntityType n\Collider, HIT_PLAYER
 			For n2.NPCs = Each NPCs
-				If n\NPCtype = n2\NPCtype And n<>n2 Then
+				If n\NPCtype = n2\NPCtype And n<>n2 And n2\TextureID = 0 Then
 					n\obj = CopyEntity (n2\obj)
 					Exit
 				EndIf
@@ -7699,7 +7695,7 @@ Function ChangeNPCTextureID(n.NPCs,textureid%)
 		Return
 	EndIf
 	
-	n\TextureID = textureid%+1
+	n\TextureID = textureid
 
 	Local oldObj = n\obj
 	If n\NPCtype = NPCtype066 And n\TextureID = 1 Then
@@ -7717,15 +7713,27 @@ Function ChangeNPCTextureID(n.NPCs,textureid%)
 			ScaleEntity n\obj, temp, temp, temp
 		EndIf
 		n\NVName = I_Loc\NPC_Unidentified
+	ElseIf n\NPCtype = NPCtype173 Then
+		oldObj = 0 ; We don't change the obj
+		Local tex% = 0
+		If n\TextureID = 1 Then
+			tex = LoadTexture_Strict("GFX\npcs\173h.pt", 1)
+		ElseIf n\TextureID = 0 Then
+			tex = LoadTexture_Strict("GFX\npcs\173texture.jpg", 1)
+		EndIf
+		If tex <> 0 Then
+			EntityTexture n\obj, tex, 0, 0
+			FreeTexture tex
+		EndIf
 	Else
-		n\obj = CopyEntity(DTextures[textureid%+1])
+		n\obj = CopyEntity(DTextures[textureid])
 		
 		temp# = 0.5 / MeshWidth(n\obj)
 		ScaleEntity n\obj, temp, temp, temp
 		MeshCullBox (n\obj, -MeshWidth(ClassDObj), -MeshHeight(ClassDObj), -MeshDepth(ClassDObj)*4, MeshWidth(ClassDObj)*2, MeshHeight(ClassDObj)*2, MeshDepth(ClassDObj)*8)
 	EndIf
 	
-	SetNPCFrame(n,n\Frame)
+	If AnimTime(n\Obj) <> -1 Then SetAnimTime(n\obj,n\Frame)
 
 	FreeEntity oldObj
 End Function
