@@ -7725,6 +7725,14 @@ Function ChangeNPCTextureID(n.NPCs,textureid%)
 			EntityTexture n\obj, tex, 0, 0
 			FreeTexture tex
 		EndIf
+	ElseIf n\NPCtype = NPCtypeOldMan Then
+		If n\TextureID = 1 Then
+			If Not CopyExistingNPCTextureIDObj(n) Then
+				n\obj = LoadAnimMesh_Strict("GFX\npcs\Halloween\skinned106.b3d")
+				temp# = GetModdedINIFloat("DATA\NPCs.ini", "SCP-106", "scale")/2.5
+				ScaleEntity n\obj, temp, temp, temp
+			EndIf
+		EndIf
 	Else
 		n\obj = CopyEntity(DTextures[textureid])
 		

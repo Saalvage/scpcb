@@ -1919,6 +1919,10 @@ Function Teleport(r.Rooms)
 	Next
 	PlayerRoom = r
 	UpdateRooms()
+	UpdateDoorsTimer = 0
+	UpdateDoors()
+	UpdateRoomLightsTimer = 0
+	UpdateRoomLights(Camera)
 End Function
 
 ;---------------------------------------------------------------------------------------------------
@@ -4298,7 +4302,8 @@ Function DrawEnding()
 						EndIf
 					Next
 					
-					Local docamount=0, docsfound=0
+					; Halloween event docs should not count here.
+					Local docamount=-2, docsfound=0
 					For itt.ItemTemplates = Each ItemTemplates
 						If itt\group = "paper" Then
 							docamount=docamount+1

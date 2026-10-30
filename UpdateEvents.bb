@@ -8563,21 +8563,37 @@ Function UpdateEvents()
 			Case "halloweenpd"
 				;[Block]
 				If PlayerRoom=e\room Then
-					PlayerFallingPickDistance = 0
+					If e\EventState = 0 Then
+						Local tempIt.TempItems = e\room\RoomTemplate\FirstTempItem
+						While tempIt<>Null
+							e\EventState = e\EventState + 1
+							tempIt = tempIt\Successor
+						Wend
+						If e\EventState = 0 Then e\EventState = -1
+					EndIf
+
+					If KillTimer >= 0 Then PlayerFallingPickDistance = 0
 					CurrStepSFX = 1
 					ShouldPlay = 3
 					BlurTimer = 900
 
-					If e\EventState2 = 0 And BlinkTimer <= -5 Then
-						e\EventState2 = 1
+					Curr106\State = -10
+					Curr106\Idle = False
 
+					If KeyDown(KEY_BLINK) And e\EventState2 = 0 Then e\EventState2 = 1
+
+					If e\EventState2 = 1 And BlinkTimer <= -11 And DropSpeed = 0 And KillTimer >= 0 Then
+						e\EventState2 = 2
+
+						x# = EntityX(Curr106\obj, True)
+						z# = EntityZ(Curr106\obj, True)
 						count% = 0
 						For w.WayPoints = Each WayPoints
-							If w\room = e\room Then count = count + 1
+							If w\room = e\room And Distance(x, z, EntityX(w\obj, True), EntityZ(w\obj, True)) > 3 Then count = count + 1
 						Next
 						Local picked% = Rand(count)-1
 						For w.WayPoints = Each WayPoints
-							If w\room = e\room Then
+							If w\room = e\room And Distance(x, z, EntityX(w\obj, True), EntityZ(w\obj, True)) > 3 Then
 								If picked = 0 Then
 									PositionEntity(Collider, EntityX(w\obj, True), EntityY(w\obj, True) + 0.2, EntityZ(w\obj, True))
 									ResetEntity(Collider)
@@ -8586,8 +8602,17 @@ Function UpdateEvents()
 								picked = picked - 1
 							EndIf
 						Next
-					ElseIf e\EventState2 = 1 And BlinkTimer > -5 Then
+					ElseIf e\EventState2 = 2 And BlinkTimer > -11 Then
 						e\EventState2 = 0
+					EndIf
+
+					If EntityY(Collider) < e\room\y - 5 Then
+						If KillTimer => 0 Then
+							KillTimer = -1
+							PlaySound_Strict HorrorSFX(8)
+							DeathMSG = I_Loc\DeathMessage_106PdFall
+						EndIf
+						BlurTimer = 3000
 					EndIf
 				EndIf
 				;[End Block]

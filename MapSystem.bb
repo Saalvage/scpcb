@@ -5608,19 +5608,7 @@ Function FillRoom(r.Rooms)
 		EndIf
 	Next
 
-	Local tempIt.TempItems = r\RoomTemplate\FirstTempItem
-	While tempIt <> Null
-		If tempIt\Chance = 1.0 Or Rnd(1.0) < tempIt\Chance Then
-			it.Items = CreateItem(tempIt\Name, r\x + tempIt\X, r\y + tempIt\Y, r\z + tempIt\Z)
-			If tempIt\HasCustomAngle Then
-				RotateEntity(it\collider, tempIt\AngleX, r\angle + tempIt\AngleY, tempIt\AngleZ)
-			EndIf
-			it\state = tempIt\State
-			it\state2 = tempIt\State2
-			EntityParent(it\collider, r\obj)
-		EndIf
-		tempIt = tempIt\Successor
-	Wend
+	FillRoomItems(r)
 
 	Local dt.TempDoors = r\RoomTemplate\FirstTempDoor
 	While dt <> Null
@@ -5639,6 +5627,22 @@ Function FillRoom(r.Rooms)
 	Wend
 	
 	CatchErrors("FillRoom ("+r\RoomTemplate\Name+")")
+End Function
+
+Function FillRoomItems(r.Rooms)
+	Local tempIt.TempItems = r\RoomTemplate\FirstTempItem
+	While tempIt <> Null
+		If tempIt\Chance = 1.0 Or Rnd(1.0) < tempIt\Chance Then
+			it.Items = CreateItem(tempIt\Name, r\x + tempIt\X, r\y + tempIt\Y, r\z + tempIt\Z)
+			If tempIt\HasCustomAngle Then
+				RotateEntity(it\collider, tempIt\AngleX, r\angle + tempIt\AngleY, tempIt\AngleZ)
+			EndIf
+			it\state = tempIt\State
+			it\state2 = tempIt\State2
+			EntityParent(it\collider, r\obj)
+		EndIf
+		tempIt = tempIt\Successor
+	Wend
 End Function
 
 Function SnapForward(entity%, dist#)

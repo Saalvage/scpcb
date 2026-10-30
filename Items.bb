@@ -593,10 +593,12 @@ Function UpdateItems()
 						RemoveItem(i)
 					ElseIf i\state > 70 * 15 Then
 						r = Null
+						e = Null
 						For e.Events = Each Events
 							If e\EventName = "halloweenpd" Then
 								r = e\room
 								Teleport(r)
+								FillRoomItems(r)
 								Exit
 							EndIf
 						Next
@@ -607,6 +609,7 @@ Function UpdateItems()
 									r = r2
 									Teleport(r)
 									CreateEvent("halloweenpd","halloweenpd",0)
+									FillRoomItems(r)
 									Exit
 								EndIf
 							Next
@@ -617,6 +620,24 @@ Function UpdateItems()
 							SetupTriggerBoxes(r)
 							Teleport(r)
 							CreateEvent("halloweenpd","halloweenpd",0)
+						EndIf
+
+						If e = Null Then
+							For e.Events = Each Events
+								If e\EventName = "halloweenpd" Then Exit
+							Next
+						EndIf
+						e\EventState3 = 0
+
+						PositionEntity(Collider, r\x + 1470 * RoomScale, r\y + 112 * RoomScale, r\z + -536 * RoomScale)
+						ResetEntity(Collider)
+						PositionEntity(Curr106\Collider, EntityX(Collider), EntityY(Collider) + 0.2, EntityZ(Collider))
+						RotateEntity(Curr106\Collider, 0, EntityYaw(Collider) + 180, 0)
+						MoveEntity(Curr106\Collider, 0, 0, -5)
+						ResetEntity(Curr106\Collider)
+
+						If Curr106\TextureID <> 1 Then
+							ChangeNPCTextureID(Curr106, 1)
 						EndIf
 
 						LightVolume = -0.1
@@ -820,15 +841,17 @@ Function PickItem(item.Items)
 					Case "bone"
 						For e.Events = Each Events
 							If e\EventName = "halloweenpd" And PlayerRoom = e\room Then
-								e\EventState = e\EventState + 1
-								If e\EventState <= 8 Then
+								e\EventState3 = e\EventState3 + 1
+								If e\EventState3 <= e\EventState Then
 									PlaySound_Strict(LoadTempSound("SFX\Halloween\BonePickUp.ogg"))
 									RemoveItem(item)
-									Msg = e\EventState + "/8 bone fragments"
+									Msg = e\EventState3 + "/" + e\EventState + " bone fragments"
 									MsgTimer = 70*5
 
-									If e\EventState = 8 Then
+									If e\EventState3 = e\EventState Then
 										item = CreateItem("boneflute", 0, 0, 0)
+										Curr106\State = 10000
+										Curr106\Idle = False
 										TeleportFromHalloweenRoom()
 									Else
 										Return
