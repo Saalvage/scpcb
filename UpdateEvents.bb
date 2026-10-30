@@ -8582,7 +8582,7 @@ Function UpdateEvents()
 
 					If KeyDown(KEY_BLINK) And e\EventState2 = 0 Then e\EventState2 = 1
 
-					If e\EventState2 = 1 And BlinkTimer <= -11 And DropSpeed = 0 And KillTimer >= 0 Then
+					If e\EventState2 = 1 And BlinkTimer <= -11 And (DropSpeed = 0 Lor SelectedDifficulty\otherFactors <> HARD) And KillTimer >= 0 Then
 						e\EventState2 = 2
 
 						x# = EntityX(Curr106\obj, True)
@@ -8606,7 +8606,7 @@ Function UpdateEvents()
 						e\EventState2 = 0
 					EndIf
 
-					If EntityY(Collider) < e\room\y - 5 Then
+					If EntityY(Collider) < e\room\y - 5 And (Not GodMode) Then
 						If KillTimer => 0 Then
 							KillTimer = -1
 							PlaySound_Strict HorrorSFX(8)

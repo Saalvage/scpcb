@@ -1117,6 +1117,7 @@ Function UpdateConsole()
 					;[Block]
 					Injuries = 0
 					Bloodloss = 0
+					LostHands = False
 					ResetDiseases()
 					;[End Block]
 				Case "teleport"
@@ -2725,7 +2726,7 @@ Function UseDoor(d.Doors, showmsg%=True, playsfx%=True)
 		Else
 			If showmsg = True And (Not HasScannerMsg()) Then 
 				If LostHands Then
-					Msg = "You have no palms to place onto the scanner."
+					Msg = I_Loc\MessageButton_DnaNohands
 				Else
 					PlaySound_Strict ScannerSFX2
 					Msg = I_Loc\MessageButton_DnaSelf
@@ -5104,13 +5105,13 @@ Function MouseLook(handleInput% = True)
 			Local it.Items = Inventory(i)
 			If it\itemtemplate\name <> "pumpkin" Then Continue
 			If it\state < lifeTime / 2 And it\state + FPSfactor >= lifeTime / 2 Then
-				Msg = "The pumpkin mask is starting to rot."
+				Msg = I_Loc\MessageItem_PumpkinmaskRotStart
 				MsgTimer = 5 * 70
 			EndIf
 
 			it\state = it\state + FPSfactor
 			If it\state >= lifeTime Then
-				Msg = "The pumpkin mask rotted away."
+				Msg = I_Loc\MessageItem_PumpkinmaskRotEnd
 				MsgTimer = 5 * 70
 				RemoveItem(it)
 			EndIf
@@ -6989,7 +6990,7 @@ Function DrawGUI()
 						Msg = I_Loc\MessageItem_Scp714On
 						Wearing714 = True
 					Else
-						Msg = "You don't have any fingers to put the ring on."
+						Msg = I_Loc\MessageItem_Scp714Nohands
 					EndIf
 					MsgTimer = 70 * 5
 					SelectedItem = Null	
@@ -7517,9 +7518,9 @@ Function DrawGUI()
 							
 							LightVolume = -1.25
 							
-							Msg = "You swallowed the candy. It tastes sour and electrifying. You feel a presence nearby."
+							Msg = I_Loc\MessageItem_EyecandyUse
 						Else
-							Msg = "You tried putting the candy in your mouth, but it just gives you an electric shock."
+							Msg = I_Loc\MessageItem_EyecandyUseShock
 						EndIf
 						MsgTimer = 70*12
 
@@ -7536,17 +7537,17 @@ Function DrawGUI()
 
 						MsgTimer = 70*10
 						If PlayerRoom\RoomTemplate\Name = "halloweenfields" Then
-							Msg = "You ate the lollipop. You are numb to its taste."
+							Msg = I_Loc\MessageItem_LollipopUseNumb
 							RemoveItem(SelectedItem)
 						Else
-							If CanTeleportToHalloweenRoom() Then
-								Msg = "You ate the lollipop. It tastes of pumpkin pie."
+							If CanTeleportToHalloweenRoom() And (Not IsTeleportingFromHalloweenCandy()) Then
+								Msg = I_Loc\MessageItem_LollipopUse
 								SelectedItem\state = True
 								DropItem(SelectedItem, False)
 								PositionEntity(SelectedItem\collider, 0, 0, 0)
 								ResetEntity(SelectedItem\collider)
 							Else
-								Msg = "You can't get it down right now."
+								Msg = I_Loc\MessageItem_CandyNouse
 								MsgTimer = 70*5
 							EndIf
 						EndIf
@@ -7561,11 +7562,11 @@ Function DrawGUI()
 
 						MsgTimer = 70*10
 						If PlayerRoom\RoomTemplate\Name = "halloweenpd" Lor PlayerRoom\RoomTemplate\Name = "pocketdimension" Then
-							Msg = "You ate the chocolate bar. You are numb to its taste."
+							Msg = I_Loc\MessageItem_ChocolateUseNumb
 							RemoveItem(SelectedItem)
 						Else
-							If CanTeleportToHalloweenRoom() Then
-								Msg = "You ate the chocolate bar. It tastes of decay."
+							If CanTeleportToHalloweenRoom() And (Not IsTeleportingFromHalloweenCandy()) Then
+								Msg = I_Loc\MessageItem_ChocolateUse
 								SelectedItem\state = True
 								DropItem(SelectedItem, False)
 								PositionEntity(SelectedItem\collider, 0, 0, 0)
@@ -7575,7 +7576,7 @@ Function DrawGUI()
 								de\Size = 0.05 : de\SizeChange = 0.001 : EntityAlpha(de\obj, 0.8) : UpdateDecals
 								PlaySound_Strict(DecaySFX(0))
 							Else
-								Msg = "You can't get it down right now."
+								Msg = I_Loc\MessageItem_CandyNouse
 								MsgTimer = 70*5
 							EndIf
 						EndIf
@@ -7587,7 +7588,7 @@ Function DrawGUI()
 					;[Block]
 					If Wearing1499 = 0 And WearingHazmat = 0 And WearingGasMask = 0 Then
 						If WearingPumpkin Then
-							Msg = "You took off the pumpkin mask."
+							Msg = I_Loc\MessageItem_PumpkinmaskOff
 						Else
 							If SelectedItem\state < 0 Then
 								SelectedItem\state = 0
@@ -7595,14 +7596,14 @@ Function DrawGUI()
 									If TeleportFromHalloweenRoom() Then PlaySound_Strict(HorrorSFX(11))
 								EndIf
 							EndIf
-							Msg = "You put on the pumpkin mask and feel invisible."
+							Msg = I_Loc\MessageItem_PumpkinmaskOn
 							If WearingNightVision Then CameraFogFar = StoredCameraFogFar
 							WearingNightVision = 0
 						EndIf
 						WearingPumpkin = Not WearingPumpkin
 						NoTarget = WearingPumpkin
 					Else
-						Msg = "You need to take off any other mask to put on the pumpkin mask."
+						Msg = I_Loc\MessageItem_PumpkinmaskConflict
 					EndIf
 					SelectedItem = Null
 					MsgTimer = 70 * 5
@@ -7772,6 +7773,15 @@ Function CanTeleportToHalloweenRoom()
 		Default
 			Return True
 	End Select
+End Function
+
+Function IsTeleportingFromHalloweenCandy()
+	For i.Items = Each Items
+		If i\itemtemplate\group = "candy" And i\state Then
+			Return True
+		EndIf
+	Next
+	Return False
 End Function
 
 Function TeleportFromHalloweenRoom%()

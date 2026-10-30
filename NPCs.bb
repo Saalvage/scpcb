@@ -1068,7 +1068,14 @@ Function UpdateNPCs()
 									If (dist > 25.0 Or isInPd Or Visible Or n\PathStatus <> 1) And (Not isAtGate) And (Not NoTarget) Then 
 										
 										If (dist > 40 Or isInPd) Then
-											TranslateEntity n\Collider, 0, ((EntityY(Collider) - 0.14) - EntityY(n\Collider)) * FPSFactor / 50.0, 0
+											Local verticalAscentDivisor% = 50
+											If PlayerRoom\RoomTemplate\Name = "halloweenpd" Then
+												Select SelectedDifficulty\otherFactors
+													Case EASY
+														verticalAscentDivisor = 75
+												End Select
+											EndIf
+											TranslateEntity n\Collider, 0, ((EntityY(Collider) - 0.14) - EntityY(n\Collider)) * FPSFactor / verticalAscentDivisor, 0
 										EndIf
 										
 										n\CurrSpeed = CurveValue(n\Speed,n\CurrSpeed,10.0)
@@ -1207,7 +1214,19 @@ Function UpdateNPCs()
 											TeleportEntity(n\Collider,PickedX(),PickedY(),PickedZ(),n\CollRadius)
                                             PointEntity(n\Collider,Collider)
                                             RotateEntity(n\Collider,0,EntityYaw(n\Collider),0)
-                                            MoveEntity(n\Collider,0,0,-2)
+											Local moveDist# = -2
+											If PlayerRoom\RoomTemplate\Name = "halloweenpd" Then
+												moveDist = Distance(PickedX(), PickedZ(), EntityX(Collider), EntityZ(Collider))
+												Select SelectedDifficulty\otherFactors
+													Case EASY
+														moveDist = Min(-5 + moveDist, -2)
+													Case NORMAL
+														moveDist = Min(-3 + moveDist, -2)
+													Default
+														moveDist = -2
+												End Select
+											EndIf
+											MoveEntity(n\Collider,0,0,moveDist)
                                             PlaySound2(OldManSFX(3),Camera,n\Collider)
 											n\SoundChn2 = PlaySound2(OldManSFX(6+Rand(0,2)),Camera,n\Collider)
                                             n\PathTimer = 0
@@ -4110,6 +4129,7 @@ Function UpdateNPCs()
 								EntityParent(it\collider, 0)
 								PositionEntity(it\collider, 0, 0, 0)
 							Else
+								it\DropSpeed = 0
 								PositionEntity(it\collider, CurveValue(0, EntityX(it\collider), 20), CurveValue(0, EntityY(it\collider), 20), CurveValue(0, EntityZ(it\collider), 20))
 							EndIf
 							found = True
@@ -4122,7 +4142,6 @@ Function UpdateNPCs()
 								If it\itemtemplate\name = "killbat" Then it\state = True
 								dist# = EntityDistance(it\collider, n\ManipulationType)
 								EntityParent(it\collider, n\ManipulationType)
-								DebugLog(dist + " " + EntityDistance(it\collider, n\Collider))
 								If dist < 0.01 Then PositionEntity(it\collider, 0, 0, 0)
 								found = True
 								Exit
@@ -4132,8 +4151,12 @@ Function UpdateNPCs()
 					
 					; There is a really odd bug where for some reason the position of the bone entities appears incorrect (likely unscaled?) for one frame.
 					If (Not found) And EntityDistance(n\Collider, n\ManipulationType) < 1 Then
-						n\State = 66
+						If n\State <> 66 Then
+							PlaySound2(LoadTempSound("SFX\SCP\066\Halloween\PowerDown.ogg"), Camera, n\Collider)
+							n\State = 66
+						EndIf
 					Else If n\State = 66 Then
+						PlaySound2(LoadTempSound("SFX\SCP\066\Halloween\PowerUp.ogg"), Camera, n\Collider)
 						n\State = 67
 					EndIf
 				EndIf
@@ -5124,7 +5147,7 @@ Function UpdateNPCs()
 		
 		Local gravityDist = Distance(EntityX(Collider),EntityZ(Collider),EntityX(n\Collider),EntityZ(n\Collider))
 		
-		If gravityDist<HideDistance*0.7 Or n\NPCtype = NPCtype1499 Then
+		If gravityDist<HideDistance*0.7 Lor n\NPCtype = NPCtype1499 Lor (n\NPCtype = NPCtype939 And n\InFacility = InFacility) Then
 			If n\InFacility = InFacility
 				TranslateEntity n\Collider, 0, n\DropSpeed, 0
 				

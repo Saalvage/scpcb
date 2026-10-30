@@ -633,8 +633,13 @@ Function UpdateItems()
 						ResetEntity(Collider)
 						PositionEntity(Curr106\Collider, EntityX(Collider), EntityY(Collider) + 0.2, EntityZ(Collider))
 						RotateEntity(Curr106\Collider, 0, EntityYaw(Collider) + 180, 0)
-						MoveEntity(Curr106\Collider, 0, 0, -5)
+						If SelectedDifficulty\aggressiveNPCs Then
+							MoveEntity(Curr106\Collider, 0, 0, -5)
+						Else
+							MoveEntity(Curr106\Collider, 0, 0, -9.5)
+						EndIf
 						ResetEntity(Curr106\Collider)
+						PlaySound_Strict LoadTempSound("SFX\Room\Halloween\PD\blink.ogg")
 
 						If Curr106\TextureID <> 1 Then
 							ChangeNPCTextureID(Curr106, 1)
@@ -707,7 +712,7 @@ Function PickItem(item.Items)
 						Return
 					Case "killbat"
 						If item\state Then
-							Msg = "The goo allows you to pick up the battery safely." ; TODO: Needed?
+							Msg = I_Loc\MessageItem_066Killbat
 							MsgTimer = 70*7
 						Else
 							ShowEntity Light
@@ -817,8 +822,8 @@ Function PickItem(item.Items)
 							MoveEntity(pvt, -0.2, -0.2, -0.2)
 							item = CreateItem("hand", EntityX(pvt), EntityY(pvt), EntityZ(pvt))
 							RotateEntity(item\collider, 0, EntityYaw(Camera) + 90 + Rnd(10, 45), 0)
-							Bloodloss = Max(Bloodloss, 2.5)
-							Injuries = Max(Injuries, 15)
+							Bloodloss = Max(Bloodloss, 50)
+							Injuries = Max(Injuries, 25)
 							BlurTimer = 10 * 70
 							CameraShake = 3
 							LostHands = True
@@ -833,7 +838,7 @@ Function PickItem(item.Items)
 								Next
 								Wearing714 = False
 							EndIf
-							DeathMSG = "Subject D-9341 found deceased with both hands severed near [REDACTED], where SCP-330 was recovered. Presumed fatal interaction with the object."
+							DeathMSG = I_Loc\DeathMessage_330
 							PlaySound_Strict(LoadTempSound("SFX\General\Slash1.ogg"))
 							FreeEntity(pvt)
 							Return
@@ -845,7 +850,7 @@ Function PickItem(item.Items)
 								If e\EventState3 <= e\EventState Then
 									PlaySound_Strict(LoadTempSound("SFX\Halloween\BonePickUp.ogg"))
 									RemoveItem(item)
-									Msg = e\EventState3 + "/" + e\EventState + " bone fragments"
+									Msg = Format(I_Loc\MessageItem_Bonefragment, e\EventState3, e\EventState)
 									MsgTimer = 70*5
 
 									If e\EventState3 = e\EventState Then
