@@ -2722,6 +2722,7 @@ Function FillRoom(r.Rooms)
 			it\state = 20 : EntityParent(it\collider, r\obj)
 
 			it = CreateItem("scp330", r\x - 3.6, r\y + 0.5, r\z + 0.6)
+			RotateEntity(it\collider, 0, 100, 0)
 			EntityParent(it\collider, r\obj)
 			r\Objects[3] = Handle(it)
 			;[End Block]
@@ -5486,7 +5487,8 @@ Function FillRoom(r.Rooms)
 			EntityParent r\Levers[0],r\obj
 			;[End Block]
 		Case "room4info"
-			it = CreateItem("scp330", r\x + 1.2, r\y + 0.56, r\z - 2.8)
+			it = CreateItem("scp330", r\x + 1.3, r\y + 0.56, r\z - 2.8)
+			RotateEntity(it\collider, 0, -100, 0)
 			EntityParent(it\collider, r\obj)
 		Case "halloweenfields"
 			Local hmap% = LoadTexture_Strict("GFX\map\halloween\fields.png", hmapFlags)

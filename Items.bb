@@ -561,7 +561,7 @@ Function UpdateItems()
 
 						Local it.Items = CreateItem("pumpkin", r\x - 14.7, r\y + 0.5, r\z + 5.0)
 						it\State = -1
-						RotateEntity(it\collider, 0, r\angle+130, 0)
+						RotateEntity(it\collider, 0, r\angle-50, 0)
 						EntityParent(it\collider, r\obj)
 
 						LightVolume = -0.1
