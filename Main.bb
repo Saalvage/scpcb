@@ -7777,7 +7777,7 @@ End Function
 
 Function IsTeleportingFromHalloweenCandy()
 	For i.Items = Each Items
-		If i\itemtemplate\group = "candy" And i\state Then
+		If i\itemtemplate\group = "candy" And i\state > 0 Then
 			Return True
 		EndIf
 	Next

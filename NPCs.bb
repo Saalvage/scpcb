@@ -700,7 +700,7 @@ Function UpdateNPCs()
 			Case NPCtype173
 				;[Block]
 				
-				If Curr173\Idle <> 3 Then
+				If n\Idle <> 3 Then
 					dist# = EntityDistance(n\Collider, Collider)		
 					
 					n\State3 = 1
@@ -1266,7 +1266,7 @@ Function UpdateNPCs()
 						RotateEntity(n\obj2, 0, EntityYaw(n\Collider) - 180, 0)
 						MoveEntity(n\obj2, 0, 8.6 * 0.11, -1.5 * 0.11)
 						
-						If PlayerRoom\RoomTemplate\Name = "pocketdimension" Lor PlayerRoom\RoomTemplate\Name = "halloweenpd" Lor PlayerRoom\RoomTemplate\Name = "gatea" Then
+						If PlayerRoom\RoomTemplate\Name = "pocketdimension" Lor PlayerRoom\RoomTemplate\Name = "gatea" Lor n\TextureID = 1 Then
 							HideEntity n\obj2
 						Else
 							If dist < CameraFogFar*LightVolume*0.6 Then

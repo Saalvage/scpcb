@@ -5487,7 +5487,7 @@ Function FillRoom(r.Rooms)
 			EntityParent r\Levers[0],r\obj
 			;[End Block]
 		Case "room4info"
-			it = CreateItem("scp330", r\x + 1.3, r\y + 0.56, r\z - 2.8)
+			it = CreateItem("scp330", r\x + 1.3, r\y + 0.56, r\z - 2.75)
 			RotateEntity(it\collider, 0, -100, 0)
 			EntityParent(it\collider, r\obj)
 		Case "halloweenfields"

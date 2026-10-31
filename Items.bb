@@ -544,6 +544,7 @@ Function UpdateItems()
 									r = r2
 									Teleport(r)
 									CreateEvent("halloweenfields","halloweenfields",0)
+									FillRoomItems(r)
 									Exit
 								EndIf
 							Next
@@ -562,7 +563,6 @@ Function UpdateItems()
 						Local it.Items = CreateItem("pumpkin", r\x - 14.7, r\y + 0.5, r\z + 5.0)
 						it\State = -1
 						RotateEntity(it\collider, 0, r\angle-50, 0)
-						EntityParent(it\collider, r\obj)
 
 						LightVolume = -0.1
 
@@ -629,7 +629,7 @@ Function UpdateItems()
 						EndIf
 						e\EventState3 = 0
 
-						PositionEntity(Collider, r\x + 1470 * RoomScale, r\y + 112 * RoomScale, r\z + -536 * RoomScale)
+						PositionEntity(Collider, r\x + 1470 * RoomScale, r\y + 112 * RoomScale + 0.2, r\z + -536 * RoomScale)
 						ResetEntity(Collider)
 						PositionEntity(Curr106\Collider, EntityX(Collider), EntityY(Collider) + 0.2, EntityZ(Collider))
 						RotateEntity(Curr106\Collider, 0, EntityYaw(Collider) + 180, 0)
@@ -900,6 +900,7 @@ Function DropItem(item.Items,playdropsound%=True)
 	
 	item\Dropped = 1
 	
+	EntityParent(item\collider, 0)
 	ShowEntity(item\collider)
 	PositionEntity(item\collider, EntityX(Camera), EntityY(Camera), EntityZ(Camera), True)
 	RotateEntity(item\collider, EntityPitch(Camera), EntityYaw(Camera)+Rnd(-20,20), 0, True)
