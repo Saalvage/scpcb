@@ -7505,7 +7505,7 @@ Function DrawGUI()
 								minDist = dist
 							EndIf
 						Next
-						If minDist < 8 Then
+						If minDist < 8 * 8 Then
 							If SteamActive And (Not UsedConsole) Then Steam_SetStatInt("candies_eaten", Steam_GetStatInt("candies_eaten") + 1)
 							
 							Local jello.NPCs = CreateNPC(NPCtype066, EntityX(closestWaypoint\obj, True), EntityY(closestWaypoint\obj, True) + 0.1, EntityZ(closestWaypoint\obj, True))
