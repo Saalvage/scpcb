@@ -8530,7 +8530,7 @@ Function UpdateEvents()
 						EndIf
 					Next
 
-					ShouldPlay = 9
+					ShouldPlay = 26
 
 					TFormPoint(EntityX(Collider), EntityY(Collider), EntityZ(Collider), 0, e\room\Objects[1])
 					Local tx# = TFormedX(), tz# = TFormedZ()
@@ -8606,7 +8606,7 @@ Function UpdateEvents()
 						e\EventState2 = 0
 					EndIf
 
-					If EntityY(Collider) < e\room\y - 5 And (Not GodMode) Then
+					If EntityY(Collider) < e\room\y - 5 Then
 						If KillTimer => 0 Then
 							KillTimer = -1
 							PlaySound_Strict HorrorSFX(8)

@@ -397,7 +397,7 @@ Function RemoveItem(i.Items, inGame%=True)
 			Case "scp427"
 				I_427\Using = False
 			Case "pumpkin"
-				WearingPumpkin = False
+				TakeOffPumpkin()
 		End Select
 	EndIf
 	If i\itemtemplate\img <> 0
@@ -570,6 +570,7 @@ Function UpdateItems()
 
 						BlurTimer = Max(BlurTimer, 5 * 70)
 						PlaySound_Strict(CoughSFX(Rand(0,2)))
+						PlaySound_Strict(LoadTempSound("SFX\Halloween\LollipopTeleport.ogg"))
 
 						RemoveItem(i)
 					EndIf
@@ -577,7 +578,15 @@ Function UpdateItems()
 			Case "chocolate"
 				If i\state > 0 Then
 					CurrStepSFX = 1
-					
+
+					If i\state > 35 * 15 Then
+						CrouchState = (i\state - 35 * 15) / (35 * 15)
+					EndIf
+
+					If i\state > 70 * 13 Then
+						LightBlink = (i\State - 70 * 13) / 70 * 2
+					EndIf
+
 					If PlayerStepped Then
 						de.Decals = CreateDecal(0, EntityX(Collider),EntityY(Collider)-0.29,EntityZ(Collider), 90, Rand(360), 0)
 						de\Size = 0.2 : de\SizeChange = 0.004 : de\timer = 90000 : EntityAlpha(de\obj, 0.8) : UpdateDecals() 											
@@ -640,6 +649,9 @@ Function UpdateItems()
 						EndIf
 						ResetEntity(Curr106\Collider)
 						PlaySound_Strict LoadTempSound("SFX\Room\Halloween\PD\blink.ogg")
+
+						PlaySound_Strict(Use914SFX)
+						PlaySound_Strict(OldManSFX(5))
 
 						If Curr106\TextureID <> 1 Then
 							ChangeNPCTextureID(Curr106, 1)
@@ -712,6 +724,7 @@ Function PickItem(item.Items)
 						Return
 					Case "killbat"
 						If item\state Then
+							If SteamActive And (Not UsedConsole) Then Steam_Achieve("AchvHlwnEye")
 							Msg = I_Loc\MessageItem_066Killbat
 							MsgTimer = 70*7
 						Else
@@ -794,7 +807,7 @@ Function PickItem(item.Items)
 							SelectedItem = item
 						EndIf
 					Case "scp330"
-						If SteamActive Then Steam_SetStatInt("has_grabbed_candy", 1)
+						If SteamActive And (Not UsedConsole) Then Steam_SetStatInt("has_grabbed_candy", 1)
 						If PopCount(item\state) < 3 Then
 							Local candyStart% = Rand(0, 2), candy%, candyMask%
 							For i% = 0 To 2
@@ -858,6 +871,7 @@ Function PickItem(item.Items)
 										Curr106\State = 10000
 										Curr106\Idle = False
 										TeleportFromHalloweenRoom()
+										If SteamActive And (Not UsedConsole) Then Steam_Achieve("AchvHlwnBar")
 									Else
 										Return
 									EndIf
@@ -936,7 +950,7 @@ Function DropItem(item.Items,playdropsound%=True)
 		Case "scp427"
 			I_427\Using = False
 		Case "pumpkin"
-			WearingPumpkin = False
+			TakeOffPumpkin()
 	End Select
 	
 	CatchErrors("DropItem")

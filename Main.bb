@@ -1166,6 +1166,8 @@ Function UpdateConsole()
 					Local itt.ItemTemplates = FindItemTemplate(Right(ConsoleInput, Len(ConsoleInput) - Instr(ConsoleInput, " ")))
 					If itt = Null Then
 						CreateConsoleMsg("Item not found.",255,150,0)
+					ElseIf itt\group = "candy" Lor itt\name = "bone" Lor itt\name = "boneflute" Lor itt\name = "pumpkin" Lor itt\name = "docfields" Lor itt\name = "scp330" Lor itt\name = "doc330" Then
+						CreateConsoleMsg("What pumpkin?")
 					Else
 						CreateConsoleMsg(itt\displayname + " spawned.")
 						it.Items = CreateItem(itt\name, EntityX(Collider), EntityY(Camera,True), EntityZ(Collider))
@@ -1988,6 +1990,7 @@ Music(22) = "914"
 Music(23) = "Ending"
 Music(24) = "Credits"
 Music(25) = "SaveMeFrom"
+Music(26) = "HalloweenFields"
 
 Global MusicVolume# = GetOptionFloat("audio", "music volume")
 ;Global MusicCHN% = StreamSound_Strict("SFX\Music\"+Music(2)+".ogg", MusicVolume, CurrMusicStream)
@@ -6114,7 +6117,7 @@ Function DrawGUI()
 							WearingNightVision = 0
 							StoredCameraFogFar = CameraFogFar
 							CameraFogFar = 30
-							WearingPumpkin = 0
+							TakeOffPumpkin()
 						EndIf
 						
 						WearingNightVision = (Not WearingNightVision)
@@ -6138,7 +6141,7 @@ Function DrawGUI()
 							WearingNightVision = 0
 							StoredCameraFogFar = CameraFogFar
 							CameraFogFar = 30
-							WearingPumpkin = 0
+							TakeOffPumpkin()
 						EndIf
 						
 						WearingNightVision = (Not WearingNightVision) * 2
@@ -6162,7 +6165,7 @@ Function DrawGUI()
 							WearingNightVision = 0
 							StoredCameraFogFar = CameraFogFar
 							CameraFogFar = 30
-							WearingPumpkin = 0
+							TakeOffPumpkin()
 						EndIf
 						
 						WearingNightVision = (Not WearingNightVision) * 3
@@ -7024,7 +7027,7 @@ Function DrawGUI()
 								If WearingNightVision Then CameraFogFar = StoredCameraFogFar
 								WearingGasMask = 0
 								WearingNightVision = 0
-								WearingPumpkin = 0
+								TakeOffPumpkin()
 							EndIf
 							SelectedItem\state=0
 							MsgTimer = 70 * 5
@@ -7074,7 +7077,7 @@ Function DrawGUI()
 							If WearingNightVision Then CameraFogFar = StoredCameraFogFar
 							WearingNightVision = 0
 							WearingGasMask = 0
-							WearingPumpkin = 0
+							TakeOffPumpkin()
 						EndIf
 						If SelectedItem\itemtemplate\name="gasmask3" Then
 							If WearingGasMask = 0 Then WearingGasMask = 3 Else WearingGasMask=0
@@ -7343,7 +7346,7 @@ Function DrawGUI()
 							If WearingNightVision Then CameraFogFar = StoredCameraFogFar
 							WearingGasMask = 0
 							WearingNightVision = 0
-							WearingPumpkin = 0
+							TakeOffPumpkin()
 							For r.Rooms = Each Rooms
 								If r\RoomTemplate\Name = "dimension1499" Then
 									BlinkTimer = -1
@@ -7503,7 +7506,7 @@ Function DrawGUI()
 							EndIf
 						Next
 						If minDist < 8 Then
-							If SteamActive Then Steam_SetStatInt("candies_eaten", Steam_GetStatInt("candies_eaten") + 1)
+							If SteamActive And (Not UsedConsole) Then Steam_SetStatInt("candies_eaten", Steam_GetStatInt("candies_eaten") + 1)
 							
 							Local jello.NPCs = CreateNPC(NPCtype066, EntityX(closestWaypoint\obj, True), EntityY(closestWaypoint\obj, True) + 0.1, EntityZ(closestWaypoint\obj, True))
 							jello\State = 2
@@ -7533,7 +7536,7 @@ Function DrawGUI()
 				Case "lollipop"
 					;[Block]
 					If CanUseItem(False, False, True)
-						If SteamActive Then Steam_SetStatInt("candies_eaten", Steam_GetStatInt("candies_eaten") + 1)
+						If SteamActive And (Not UsedConsole) Then Steam_SetStatInt("candies_eaten", Steam_GetStatInt("candies_eaten") + 1)
 
 						MsgTimer = 70*10
 						If PlayerRoom\RoomTemplate\Name = "halloweenfields" Then
@@ -7546,6 +7549,7 @@ Function DrawGUI()
 								DropItem(SelectedItem, False)
 								PositionEntity(SelectedItem\collider, 0, 0, 0)
 								ResetEntity(SelectedItem\collider)
+								PlaySound_Strict(LoadTempSound("SFX\Halloween\LollipopEat.ogg"))
 							Else
 								Msg = I_Loc\MessageItem_CandyNouse
 								MsgTimer = 70*5
@@ -7558,7 +7562,7 @@ Function DrawGUI()
 				Case "chocolate"
 					;[Block]
 					If CanUseItem(False, False, True)
-						If SteamActive Then Steam_SetStatInt("candies_eaten", Steam_GetStatInt("candies_eaten") + 1)
+						If SteamActive And (Not UsedConsole) Then Steam_SetStatInt("candies_eaten", Steam_GetStatInt("candies_eaten") + 1)
 
 						MsgTimer = 70*10
 						If PlayerRoom\RoomTemplate\Name = "halloweenpd" Lor PlayerRoom\RoomTemplate\Name = "pocketdimension" Then
@@ -7593,7 +7597,10 @@ Function DrawGUI()
 							If SelectedItem\state < 0 Then
 								SelectedItem\state = 0
 								If PlayerRoom\RoomTemplate\Name = "halloweenfields" Then
-									If TeleportFromHalloweenRoom() Then PlaySound_Strict(HorrorSFX(11))
+									If TeleportFromHalloweenRoom() Then
+										PlaySound_Strict(HorrorSFX(11))
+										If SteamActive And (Not UsedConsole) Then Steam_Achieve("AchvHlwnLolly")
+									EndIf
 								EndIf
 							EndIf
 							Msg = I_Loc\MessageItem_PumpkinmaskOn
@@ -12777,6 +12784,11 @@ Function CanUseItem(canUseWithHazmat%, canUseWithGasMask%, canUseWithEyewear%)
 	EndIf
 	
 	Return True
+End Function
+
+Function TakeOffPumpkin()
+	If WearingPumpkin Then NoTarget = False
+	WearingPumpkin = False
 End Function
 
 Function ResetInput()
